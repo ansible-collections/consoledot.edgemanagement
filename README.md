@@ -1,2 +1,3 @@
-# maxamillion.fleetmanagement
-PoC Ansible Collection for Red Hat Edge Fleet Manager
+# Ansible Collection - maxamillion.fleetmanager
+
+PoC Collection for the Red Hat Edge Fleet Manager
