@@ -1,9 +1,10 @@
 ---
 - name: List RHEL For Edge Images in your Fleet Management Account
   hosts: CRC
+  gather_facts: false
   tasks:
-    - maxamillion.fleetmanager.list_images:
-      register: output
+    - maxamillion.fleetmanager.images_info:
+      register: images_output
 
     - debug:
-        var: output
+        var: images_output

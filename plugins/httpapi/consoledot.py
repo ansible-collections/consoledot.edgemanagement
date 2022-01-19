@@ -25,7 +25,10 @@ from ansible.plugins.httpapi import HttpApiBase
 from ansible.module_utils.connection import ConnectionError
 
 class HttpApi(HttpApiBase):
+
     def send_request(self, request_method, path, data=None, headers=None):
+        headers = headers if headers else BASE_HEADERS
+
         try:
             self._display_request(request_method)
             response, response_data = self.connection.send(
@@ -42,3 +45,13 @@ class HttpApi(HttpApiBase):
         self.connection.queue_message(
             "vvvv", "Web Services: %s %s" % (request_method, self.connection._url)
         )
+
+    def _get_response_value(self, response_data):
+        return to_text(response_data.getvalue())
+
+    def _response_to_json(self, response_text):
+        try:
+            return json.loads(response_text) if response_text else {}
+        # JSONDecodeError only available on Python 3.5+
+        except ValueError:
+            raise ConnectionError("Invalid JSON response: %s" % response_text)
