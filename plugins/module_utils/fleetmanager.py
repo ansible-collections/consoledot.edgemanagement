@@ -32,13 +32,8 @@ class ConsoleDotRequest(object):
 
         try:
             code, response = self.connection.send_request(
-                data, path, method, headers=self.headers
+                method, path, data=data, headers=self.headers
             )
-            import q; q.q(data)
-            import q; q.q(path)
-            import q; q.q(method)
-            import q; q.q(code)
-            import q; q.q(response)
 
         except ConnectionError as e:
             self.module.fail_json(msg=f"connection error occurred: {e}")

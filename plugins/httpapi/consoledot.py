@@ -28,8 +28,6 @@ BASE_HEADERS = {"Content-Type": "application/json"}
 
 class HttpApi(HttpApiBase):
 
-    import q;
-    @q.t
     def send_request(self, request_method, path, data=None, headers=None):
         headers = headers if headers else BASE_HEADERS
 
@@ -38,7 +36,7 @@ class HttpApi(HttpApiBase):
             response, response_data = self.connection.send(
                 path, data, method=request_method, headers=headers
             )
-            value = self._get_response_value(response_data)
+            value = to_text(response_data.getvalue()) 
 
             return response.getcode(), self._response_to_json(value)
         except HTTPError as e:
@@ -49,9 +47,6 @@ class HttpApi(HttpApiBase):
         self.connection.queue_message(
             "vvvv", "Web Services: %s %s" % (request_method, self.connection._url)
         )
-
-    def _get_response_value(self, response_data):
-        return to_text(response_data.getvalue())
 
     def _response_to_json(self, response_text):
         try:
