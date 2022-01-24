@@ -24,8 +24,12 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError
 from ansible.plugins.httpapi import HttpApiBase
 from ansible.module_utils.connection import ConnectionError
 
+BASE_HEADERS = {"Content-Type": "application/json"}
+
 class HttpApi(HttpApiBase):
 
+    import q;
+    @q.t
     def send_request(self, request_method, path, data=None, headers=None):
         headers = headers if headers else BASE_HEADERS
 

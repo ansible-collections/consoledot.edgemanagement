@@ -34,12 +34,21 @@ class ConsoleDotRequest(object):
             code, response = self.connection.send_request(
                 data, path, method, headers=self.headers
             )
+            import q; q.q(data)
+            import q; q.q(path)
+            import q; q.q(method)
+            import q; q.q(code)
+            import q; q.q(response)
+
         except ConnectionError as e:
-            self.module.fail_json(msg="connection error occurred: {0}".format(e))
+            self.module.fail_json(msg=f"connection error occurred: {e}")
         except CertificateError as e:
-            self.module.fail_json(msg="certificate error occurred: {0}".format(e))
+            self.module.fail_json(msg=f"certificate error occurred: {e}")
         except ValueError as e:
-            self.module.fail_json(msg="certificate not found: {0}".format(e))
+            self.module.fail_json(msg=f"certificate not found: {e}")
+
+        if code == 500:
+            self.module.fail_json(msg=f"Error-500: {response}")
 
         return response
 
