@@ -36,12 +36,26 @@ options:
       - user to allow ssh access too devices provisioned using this Image
     required: true
     type: str
-  rhel_release:
+  distribution:
     description:
-      - which RHEL Release to base this on
+      - which RHEL Release to use to create this Image
     required: false
     type: str
     choices: [ "rhel-85", "rhel-84" ]
+    default: "rhel-85"
+  arch:
+    description:
+      - Computer architecture the Image will be installed on
+    required: false
+    type: str
+    choices: [ "x86_64", "aarch64" ]
+    default: "x86_64"
+  installer:
+    description:
+      - Create an installable ISO along with the RHEL for Edge Image ostree commit
+    required: false
+    type: bool
+    default: true
 
 author: Adam Miller @maxamillion 
 """
@@ -76,29 +90,89 @@ import json
 
 def main():
 
+    distro_choices = [
+        "rhel-84",
+        "rhel-85"
+    ]
+
+    arch_choices = [ 
+        "x86_64",
+        "aarch64"
+    ]
+
     argspec = dict(
         name=dict(required=True, type="str"),
         packages=dict(required=False, type="list"),
         ssh_user=dict(required=True, type="str"),
         ssh_pubkey=dict(required=True, type="str"),
+        distribution=dict(required=False, type="str", default="rhel-85", choices=distro_choices),
+        arch=dict(required=False, type="str", default="x86_64", choices=arch_choices),
+        installer=dict(required=False, type="bool", default=True),
     )
 
     module = AnsibleModule(argument_spec=argspec, supports_check_mode=True)
 
     crc_request = ConsoleDotRequest(module)
 
+    # {
+    #  "name": "jhdskfjsdkfjdsjfjdsfkjk",
+    #  "version": 0,
+    #  "distribution": "rhel-85",
+    #  "imageType": "rhel-edge-installer",
+    #  "packages": [
+    #    {
+    #      "name": "tmux"
+    #    }
+    #  ],
+    #  "outputTypes": [
+    #    "rhel-edge-installer",
+    #    "rhel-edge-commit"
+    #  ],
+    #  "commit": {
+    #    "arch": "x86_64"
+    #  },
+    #  "installer": {
+    #    "username": "user1",
+    #    "sshkey": "ssh-rsa k"
+    #  }
+    # }
     postdata = {
-        "version": 0,
         "name": module.params['name'],
+        "version": 0,
+        "distribution": module.params['distribution'],
+        "imageType": "rhel-edge-installer",
+        "packages": [],
+        "outputTypes": [
+            "rhel-edge-commit",
+        ],
+        "commit": {
+            "arch": "x86_64"
+        },
+        "installer": {
+            "username": module.params['ssh_user'],
+            "sshkey": module.params['ssh_pubkey'],
+        },
         "description": f'RHEL for Edge Image Created by Ansible Module - {module.params["name"]}',
-        "selected-packages": [],
     }
 
+    with_installer = module.params['installer']
+    if with_installer:
+        postdata['outputTypes'].append('rhel-edge-installer')
+
     for package in module.params['packages']:
-        postdata['selected-packages'].append({
-            "selected": True,
+        postdata['packages'].append({
             "name": package,
         })
+
+    try:
+        response = crc_request.post("/api/edge/v1/images/", data=json.dumps(postdata))
+        if response['Status'] not in [400, 403, 404]:
+            module.exit_json(msg=to_text(response), postdata=postdata)
+        else:
+            module.fail_json(msg=to_text(response), postdata=postdata)
+
+    except e:
+        module.fail_json(msg=to_text(e), postdata=postdata)
 
 
 if __name__ == "__main__":
