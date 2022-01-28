@@ -80,7 +80,7 @@ def main():
 
         if module.params["name"]:
             query_strs.append(
-                quote('name="{0}"'.format(to_text(module.params["name"])))
+                'name="{0}"'.format(quote(to_text(module.params["name"])))
             )
 
         if query_strs:

@@ -1,0 +1,14 @@
+---
+- name: Update a RHEL for Edge Fleet Device
+  hosts: CRC
+  gather_facts: false
+  vars:
+    deviceUUID: "2ae43de4-bce7-4cfb-9039-af77458260ea"
+  tasks:
+    - name: update a device
+      maxamillion.fleetmanager.update_device:
+        client_id: "{{ deviceUUID }}"
+      register: update_output 
+
+    - debug: var=update_output
+

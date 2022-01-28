@@ -80,10 +80,12 @@ def main():
 
         if module.params["name"]:
             query_strs.append(
-                quote('name="{0}"'.format(to_text(module.params["name"])))
+                'name="{0}"'.format(quote(to_text(module.params["name"])))
             )
 
         if query_strs:
+            import q; q.q(query_strs)
+            import q; q.q("/api/edge/v1/image-sets?{0}".format("&".join(query_strs)))
             imagesets = crc_request.get(
                 "/api/edge/v1/image-sets?{0}".format("&".join(query_strs))
             )
