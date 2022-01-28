@@ -167,9 +167,9 @@ def main():
     try:
         response = crc_request.post("/api/edge/v1/images/", data=json.dumps(postdata))
         if response['Status'] not in [400, 403, 404]:
-            module.exit_json(msg=to_text(response), postdata=postdata)
+            module.exit_json(msg="Successfully queued image build", image=response, postdata=postdata)
         else:
-            module.fail_json(msg=to_text(response), postdata=postdata)
+            module.fail_json(msg=response, postdata=postdata)
 
     except e:
         module.fail_json(msg=to_text(e), postdata=postdata)
