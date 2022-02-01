@@ -26,8 +26,6 @@ class ConsoleDotRequest(object):
 
         self.headers = headers if headers else BASE_HEADERS
 
-    import q;
-    @q.t
     def _httpapi_error_handle(self, method, path, data=None):
         # FIXME - make use of handle_httperror(self, exception) where applicable
         #   https://docs.ansible.com/ansible/latest/network/dev_guide/developing_plugins_network.html#developing-plugins-httpapi
