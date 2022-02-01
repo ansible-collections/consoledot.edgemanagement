@@ -3,7 +3,7 @@
   hosts: CRC
   gather_facts: false
   vars:
-    imageName: "admillerAnsibleTest2"
+    imageName: "admillerAnsibleTest7"
   tasks:
     - name: Create an image
       maxamillion.fleetmanager.create_image:
@@ -18,11 +18,11 @@
 
     - debug: var=createimage_output
 
-    - name: wait until image build is complete
+    - name: wait until image build is successful
       maxamillion.fleetmanager.images_info:
-        id: "{{ createimage_output['image']['Id'] }}"
+        id: "{{ createimage_output['image']['InstallerID'] }}"
       register: imageinfo_output 
-      until: imageinfo_output['image']['Status'] == "SUCCESS"
+      until: imageinfo_output['images']['Status'] == "SUCCESS"
       retries: 300
       delay: 10
 
