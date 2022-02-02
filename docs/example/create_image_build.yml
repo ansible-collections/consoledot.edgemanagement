@@ -20,7 +20,7 @@
 
     - name: wait until image build is successful
       maxamillion.fleetmanager.images_info:
-        id: "{{ createimage_output['image']['InstallerID'] }}"
+        id: "{{ createimage_output['image']['ID'] }}"
       register: imageinfo_output 
       until: imageinfo_output['images']['Status'] == "SUCCESS"
       retries: 300
