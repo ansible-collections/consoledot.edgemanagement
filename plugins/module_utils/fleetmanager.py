@@ -18,6 +18,7 @@ import json
 
 BASE_HEADERS = {"Content-Type": "application/json"}
 
+
 class ConsoleDotRequest(object):
     def __init__(self, module, headers=None, not_rest_data_keys=None):
 

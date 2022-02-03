@@ -50,7 +50,9 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_text
 
 from ansible.module_utils.six.moves.urllib.parse import quote
-from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import ConsoleDotRequest
+from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import (
+    ConsoleDotRequest,
+)
 
 import copy
 import json
@@ -90,8 +92,7 @@ def main():
             else:
                 devices = crc_request.get("/api/edge/v1/devices/")
 
-
-        if ('Status' in devices) and (devices['Status'] in [400, 403, 404]):
+        if ("Status" in devices) and (devices["Status"] in [400, 403, 404]):
             module.fail_json(msg=devices)
     except e:
         module.fail_json(msg=to_text(e))

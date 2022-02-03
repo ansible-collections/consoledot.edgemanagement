@@ -58,7 +58,9 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_text
 
 from ansible.module_utils.six.moves.urllib.parse import quote
-from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import ConsoleDotRequest
+from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import (
+    ConsoleDotRequest,
+)
 
 import copy
 import json
@@ -66,24 +68,20 @@ import json
 
 def main():
 
-    distro_choices = [
-        "rhel-84",
-        "rhel-85"
-    ]
+    distro_choices = ["rhel-84", "rhel-85"]
 
-    arch_choices = [ 
-        "x86_64",
-        "aarch64"
-    ]
+    arch_choices = ["x86_64", "aarch64"]
     # FIXME - ambiguous results returned by image-sets name search, it defaults to partial-matching
-    # name=dict(required=False, type="str"), 
+    # name=dict(required=False, type="str"),
     # curl -H "Content-Type: application/json" --url https://console.redhat.com:443/api/edge/v1/image-sets?name="Ansible" | jq .Data[0].image_set.Images[0].ID
     argspec = dict(
         id=dict(required=True, type="int"),
         packages=dict(required=False, type="list"),
         ssh_user=dict(required=True, type="str"),
         ssh_pubkey=dict(required=True, type="str"),
-        distribution=dict(required=False, type="str", default="rhel-85", choices=distro_choices),
+        distribution=dict(
+            required=False, type="str", default="rhel-85", choices=distro_choices
+        ),
         arch=dict(required=False, type="str", default="x86_64", choices=arch_choices),
         installer=dict(required=False, type="bool", default=True),
     )
@@ -93,21 +91,27 @@ def main():
     crc_request = ConsoleDotRequest(module)
 
     try:
-        postdata = crc_request.get(f"/api/edge/v1/images/{module.params['id']}") 
+        postdata = crc_request.get(f"/api/edge/v1/images/{module.params['id']}")
 
+        with_installer = module.params["installer"]
+        if with_installer and ("rhel-edge-installer" not in pastdata["OutputTypes"]):
+            postdata["outputTypes"].append("rhel-edge-installer")
 
-        with_installer = module.params['installer']
-        if with_installer and ('rhel-edge-installer' not in pastdata['OutputTypes']):
-            postdata['outputTypes'].append('rhel-edge-installer')
+        for package in module.params["packages"]:
+            postdata["packages"].append(
+                {
+                    "name": package,
+                }
+            )
 
-        for package in module.params['packages']:
-            postdata['packages'].append({
-                "name": package,
-            })
-
-        response = crc_request.post(f"/api/edge/v1/images/{module.params['id']}/update", data=json.dumps(postdata))
-        if response['Status'] not in [400, 403, 404]:
-            module.exit_json(msg="Successfully queued image build", image=response, postdata=postdata)
+        response = crc_request.post(
+            f"/api/edge/v1/images/{module.params['id']}/update",
+            data=json.dumps(postdata),
+        )
+        if response["Status"] not in [400, 403, 404]:
+            module.exit_json(
+                msg="Successfully queued image build", image=response, postdata=postdata
+            )
         else:
             module.fail_json(msg=response, postdata=postdata)
 

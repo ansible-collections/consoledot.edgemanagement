@@ -53,7 +53,9 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_text
 
 from ansible.module_utils.six.moves.urllib.parse import quote
-from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import ConsoleDotRequest
+from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import (
+    ConsoleDotRequest,
+)
 
 import copy
 import json
@@ -79,9 +81,7 @@ def main():
         query_strs = []
 
         if module.params["name"]:
-            query_strs.append(
-                'name={0}'.format(quote(to_text(module.params["name"])))
-            )
+            query_strs.append("name={0}".format(quote(to_text(module.params["name"]))))
 
         if query_strs:
             imagesets = crc_request.get(

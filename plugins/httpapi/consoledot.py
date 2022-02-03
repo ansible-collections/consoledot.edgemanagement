@@ -26,8 +26,8 @@ from ansible.module_utils.connection import ConnectionError
 
 BASE_HEADERS = {"Content-Type": "application/json"}
 
-class HttpApi(HttpApiBase):
 
+class HttpApi(HttpApiBase):
     def send_request(self, request_method, path, data=None, headers=None):
         headers = headers if headers else BASE_HEADERS
 
@@ -36,7 +36,7 @@ class HttpApi(HttpApiBase):
             response, response_data = self.connection.send(
                 path, data, method=request_method, headers=headers
             )
-            value = to_text(response_data.getvalue()) 
+            value = to_text(response_data.getvalue())
 
             return response.getcode(), self._response_to_json(value)
         except HTTPError as e:

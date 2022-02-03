@@ -57,7 +57,9 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_text
 
 from ansible.module_utils.six.moves.urllib.parse import quote
-from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import ConsoleDotRequest
+from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import (
+    ConsoleDotRequest,
+)
 
 import copy
 import json
@@ -65,22 +67,18 @@ import json
 
 def main():
 
-    distro_choices = [
-        "rhel-84",
-        "rhel-85"
-    ]
+    distro_choices = ["rhel-84", "rhel-85"]
 
-    arch_choices = [ 
-        "x86_64",
-        "aarch64"
-    ]
+    arch_choices = ["x86_64", "aarch64"]
 
     argspec = dict(
         name=dict(required=True, type="str"),
         packages=dict(required=False, type="list"),
         ssh_user=dict(required=True, type="str"),
         ssh_pubkey=dict(required=True, type="str"),
-        distribution=dict(required=False, type="str", default="rhel-85", choices=distro_choices),
+        distribution=dict(
+            required=False, type="str", default="rhel-85", choices=distro_choices
+        ),
         arch=dict(required=False, type="str", default="x86_64", choices=arch_choices),
         installer=dict(required=False, type="bool", default=True),
     )
@@ -112,37 +110,39 @@ def main():
     #  }
     # }
     postdata = {
-        "name": module.params['name'],
+        "name": module.params["name"],
         "version": 0,
-        "distribution": module.params['distribution'],
+        "distribution": module.params["distribution"],
         "imageType": "rhel-edge-installer",
         "packages": [],
         "outputTypes": [
             "rhel-edge-commit",
         ],
-        "commit": {
-            "arch": "x86_64"
-        },
+        "commit": {"arch": "x86_64"},
         "installer": {
-            "username": module.params['ssh_user'],
-            "sshkey": module.params['ssh_pubkey'],
+            "username": module.params["ssh_user"],
+            "sshkey": module.params["ssh_pubkey"],
         },
         "description": f'RHEL for Edge Image Created by Ansible Module - {module.params["name"]}',
     }
 
-    with_installer = module.params['installer']
+    with_installer = module.params["installer"]
     if with_installer:
-        postdata['outputTypes'].append('rhel-edge-installer')
+        postdata["outputTypes"].append("rhel-edge-installer")
 
-    for package in module.params['packages']:
-        postdata['packages'].append({
-            "name": package,
-        })
+    for package in module.params["packages"]:
+        postdata["packages"].append(
+            {
+                "name": package,
+            }
+        )
 
     try:
         response = crc_request.post("/api/edge/v1/images/", data=json.dumps(postdata))
-        if response['Status'] not in [400, 403, 404]:
-            module.exit_json(msg="Successfully queued image build", image=response, postdata=postdata)
+        if response["Status"] not in [400, 403, 404]:
+            module.exit_json(
+                msg="Successfully queued image build", image=response, postdata=postdata
+            )
         else:
             module.fail_json(msg=response, postdata=postdata)
 
