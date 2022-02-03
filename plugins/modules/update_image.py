@@ -77,12 +77,6 @@ def main():
     argspec = dict(
         id=dict(required=True, type="int"),
         packages=dict(required=False, type="list"),
-        ssh_user=dict(required=True, type="str"),
-        ssh_pubkey=dict(required=True, type="str"),
-        distribution=dict(
-            required=False, type="str", default="rhel-85", choices=distro_choices
-        ),
-        arch=dict(required=False, type="str", default="x86_64", choices=arch_choices),
         installer=dict(required=False, type="bool", default=True),
     )
 
