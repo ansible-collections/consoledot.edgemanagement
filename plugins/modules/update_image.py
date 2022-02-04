@@ -26,12 +26,6 @@ options:
       - Aditional packages to add for this Image update build
     required: false
     type: list
-  installer:
-    description:
-      - Update an installable ISO along with the RHEL for Edge Image ostree commit
-    required: false
-    type: bool
-    default: true
 
 author: Adam Miller @maxamillion
 """
@@ -77,7 +71,6 @@ def main():
     argspec = dict(
         id=dict(required=True, type="int"),
         packages=dict(required=False, type="list", default=[]),
-        installer=dict(required=False, type="bool", default=True),
     )
 
     module = AnsibleModule(argument_spec=argspec, supports_check_mode=True)
@@ -85,11 +78,47 @@ def main():
     crc_request = ConsoleDotRequest(module)
 
     try:
-        postdata = crc_request.get(f"/api/edge/v1/images/{module.params['id']}")
+        old_image = crc_request.get(f"/api/edge/v1/images/{module.params['id']}")
+        #   {
+        #     "name": "tpapaioa-20220204-1",
+        #     "version": 2,
+        #     "description": "",
+        #     "distribution": "rhel-85",
+        #     "imageType": "rhel-edge-commit",
+        #     "packages": [],
+        #     "outputTypes": [
+        #       "rhel-edge-commit"
+        #     ],
+        #     "commit": {
+        #       "arch": "x86_64"
+        #     },
+        #     "installer": {
+        #       "username": "",
+        #       "sshkey": ""
+        #     }
+        #   }
+        postdata = {
+            'name': old_image['Name'],
+            'version': old_image['Version'] + 1,
+            'description': f'RHEL for Edge Image Updated by Ansible Module - {old_image["Name"]}',
+            'distribution': old_image['Distribution'],
+            'packages': [],
+            'outputTypes': "rhel-edge-commit",
+            'commit': {
+                'arch': old_image['Commit']['Arch'],
+            },
+            'installer':
+            {
+                'username': "",
+                'sshkey': "",
+            },
+            
+        }
 
-        with_installer = module.params["installer"]
-        if with_installer and ("rhel-edge-installer" not in postdata["OutputTypes"]):
-            postdata["OutputTypes"].append("rhel-edge-installer")
+        # FIXME - maybe deal with installer later
+        #with_installer = module.params["installer"]
+        #if with_installer and ("rhel-edge-installer" not in postdata["OutputTypes"]):
+        #    postdata["OutputTypes"].append("rhel-edge-installer")
 
         for package in module.params["packages"]:
             postdata["Packages"].append(
