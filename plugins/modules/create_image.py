@@ -171,7 +171,7 @@ def main():
         else:
             module.fail_json(msg=response, postdata=postdata)
 
-    except e:
+    except Exception as e:
         module.fail_json(msg=to_text(e), postdata=postdata)
 
 

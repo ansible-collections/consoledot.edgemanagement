@@ -94,7 +94,7 @@ def main():
 
         if ("Status" in devices) and (devices["Status"] in [400, 403, 404]):
             module.fail_json(msg=devices)
-    except e:
+    except Exception as e:
         module.fail_json(msg=to_text(e))
 
     module.exit_json(devices=devices, changed=False)
