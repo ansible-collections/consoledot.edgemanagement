@@ -98,7 +98,7 @@ def main():
 
     argspec = dict(
         name=dict(required=True, type="str"),
-        packages=dict(required=False, type="list"),
+        packages=dict(required=False, type="list", default=[]),
         ssh_user=dict(required=True, type="str"),
         ssh_pubkey=dict(required=True, type="str"),
         distribution=dict(

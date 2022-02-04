@@ -76,7 +76,7 @@ def main():
     # curl -H "Content-Type: application/json" --url https://console.redhat.com:443/api/edge/v1/image-sets?name="Ansible" | jq .Data[0].image_set.Images[0].ID
     argspec = dict(
         id=dict(required=True, type="int"),
-        packages=dict(required=False, type="list"),
+        packages=dict(required=False, type="list", default=[]),
         installer=dict(required=False, type="bool", default=True),
     )
 
@@ -88,11 +88,11 @@ def main():
         postdata = crc_request.get(f"/api/edge/v1/images/{module.params['id']}")
 
         with_installer = module.params["installer"]
-        if with_installer and ("rhel-edge-installer" not in pastdata["OutputTypes"]):
-            postdata["outputTypes"].append("rhel-edge-installer")
+        if with_installer and ("rhel-edge-installer" not in postdata["OutputTypes"]):
+            postdata["OutputTypes"].append("rhel-edge-installer")
 
         for package in module.params["packages"]:
-            postdata["packages"].append(
+            postdata["Packages"].append(
                 {
                     "name": package,
                 }
