@@ -9,11 +9,21 @@
     - name: update an image
       maxamillion.fleetmanager.update_image:
         id: "{{ imageID }}"
-      register: update_output 
+      register: updateimage_output
+
+    - debug: var=updateimage_output
+
+    - name: wait until image build is successful
+      maxamillion.fleetmanager.images_info:
+        id: "{{ updateimage_output['image']['ID'] }}"
+      register: imageinfo_output
+      until: imageinfo_output['images']['Status'] == "SUCCESS"
+      retries: 300
+      delay: 10
 #   - name: update a device
 #     maxamillion.fleetmanager.update_device:
 #       client_id: "{{ deviceUUID }}"
 #     register: update_output 
 
-    - debug: var=update_output
+#   - debug: var=update_output
 

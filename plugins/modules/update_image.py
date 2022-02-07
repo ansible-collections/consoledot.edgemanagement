@@ -79,6 +79,7 @@ def main():
 
     try:
         old_image = crc_request.get(f"/api/edge/v1/images/{module.params['id']}")
+        image_set = crc_request.get(f"/api/edge/v1/image-sets/{old_image['ImageSetID']}")
         #   {
         #     "name": "tpapaioa-20220204-1",
         #     "version": 2,
@@ -99,7 +100,7 @@ def main():
         #   }
         postdata = {
             'name': old_image['Name'],
-            'version': old_image['Version'] + 1,
+            'version': image_set['Data']['image_set']['Version'] + 1,
             'description': f'RHEL for Edge Image Updated by Ansible Module - {old_image["Name"]}',
             'distribution': old_image['Distribution'],
             'packages': [],
@@ -112,7 +113,6 @@ def main():
                 'username': "",
                 'sshkey': "",
             },
-            
         }
 
         # FIXME - maybe deal with installer later
@@ -128,7 +128,7 @@ def main():
             )
 
         response = crc_request.post(
-            f"/api/edge/v1/images/{module.params['id']}/update",
+            f"/api/edge/v1/images/{image_set['Data']['images'][0]['image']['ID']}/update",
             data=json.dumps(postdata),
         )
         if response["Status"] not in [400, 403, 404]:
