@@ -103,7 +103,7 @@ def main():
             'description': f'RHEL for Edge Image Updated by Ansible Module - {old_image["Name"]}',
             'distribution': old_image['Distribution'],
             'packages': [],
-            'outputTypes': "rhel-edge-commit",
+            'outputTypes': ["rhel-edge-commit"],
             'commit': {
                 'arch': old_image['Commit']['Arch'],
             },
