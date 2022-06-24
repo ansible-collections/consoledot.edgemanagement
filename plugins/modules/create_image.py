@@ -5,7 +5,6 @@
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 from __future__ import absolute_import, division, print_function
-from email.policy import default
 
 __metaclass__ = type
 
