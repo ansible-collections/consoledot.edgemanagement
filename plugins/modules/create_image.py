@@ -5,6 +5,7 @@
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 from __future__ import absolute_import, division, print_function
+from email.policy import default
 
 __metaclass__ = type
 
@@ -23,7 +24,17 @@ options:
     type: str
   packages:
     description:
-      - Name ImageSet that will be created based on this new Image build request
+      - List any core RHEL package to add to this new image
+    required: false
+    type: list
+  custom_repositories:
+    description:
+      - Adding a custom repository allows you to add packages from outside Red Hat to this image
+    required: false
+    type: list
+  custom_packages:
+    description:
+      - List the packages you want to add from the custom repository you are adding to this image
     required: false
     type: list
   ssh_pubkey:
@@ -92,13 +103,15 @@ import json
 
 def main():
 
-    distro_choices = ["rhel-84", "rhel-85"]
+    distro_choices = ["rhel-84", "rhel-85", "rhel-86", "rhel-90"]
 
     arch_choices = ["x86_64", "aarch64"]
 
     argspec = dict(
         name=dict(required=True, type="str"),
         packages=dict(required=False, type="list", default=[]),
+        custom_repositories=dict(required=False, type="list", default=[]),
+        custom_packages=dict(required=False, type="list", default=[]),
         ssh_user=dict(required=True, type="str"),
         ssh_pubkey=dict(required=True, type="str"),
         distribution=dict(
@@ -122,6 +135,17 @@ def main():
     #      "name": "tmux"
     #    }
     #  ],
+    #  "thirdPartyRepositories": [
+    #    {
+    #      "name": "Anbile Custom Repo",
+    #      "url": "https://repos.fedorapeople.org/pulp/pulp/demo_repos/zoo"
+    #    }
+    #  ],
+    #  "customPackages": [
+    #    {
+    #       "name": "bear"
+    #    }
+    #  ],
     #  "outputTypes": [
     #    "rhel-edge-installer",
     #    "rhel-edge-commit"
@@ -140,6 +164,8 @@ def main():
         "distribution": module.params["distribution"],
         "imageType": "rhel-edge-installer",
         "packages": [],
+        "thirdPartyRepositories": [],
+        "customPackages": [],
         "outputTypes": [
             "rhel-edge-commit",
         ],
@@ -159,6 +185,20 @@ def main():
         postdata["packages"].append(
             {
                 "name": package,
+            }
+        )
+    for customRepository in module.params["custom_repositories"]:
+        postdata["thirdPartyRepositories"].append(
+            {
+                "name": customRepository["name"],
+                "url": customRepository["url"],
+                "id": customRepository["id"]
+            }
+        )
+    for customPackage in module.params["custom_packages"]:
+        postdata["customPackages"].append(
+            {
+                "name": customPackage,
             }
         )
 
