@@ -3,7 +3,7 @@
   hosts: CRC
   gather_facts: false
   vars:
-    imageName: "admillerAnsibleTest7"
+    imageName: "Santiago_Ansible_Test3"
   tasks:
     - name: Create an image
       maxamillion.fleetmanager.create_image:
