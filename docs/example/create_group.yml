@@ -1,0 +1,14 @@
+---
+- name: Create a group
+  hosts: CRC
+  gather_facts: false
+  vars:
+    group_name: 'ansible-group-santiago'
+  tasks:
+    - name: Create a group
+      maxamillion.fleetmanager.groups:
+        name: '{{ group_name }}'
+        state: 'present'
+      register: create_group_output
+
+    # - debug: var=create_group_output

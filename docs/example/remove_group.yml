@@ -1,0 +1,14 @@
+---
+- name: Remove a group
+  hosts: CRC
+  gather_facts: false
+  vars:
+    group_name: 'ansible-group-santiago6'
+  tasks:
+    - name: Remove a group
+      maxamillion.fleetmanager.groups:
+        name: '{{ group_name }}'
+        state: 'absent'
+      register: remove_group_output
+
+    # - debug: var=remove_group_output
