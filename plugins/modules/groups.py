@@ -31,8 +31,8 @@ options:
     type: str
   state:
     description:
-      - state description here
-    required: true
+      - Should the group exist or not
+    required  true
     type: str
     choices: ['present', 'absent']
 
@@ -100,11 +100,11 @@ def main():
 
             group_match = find_group(group_data)
             if len(group_match) == 0:
-                module.fail_json(msg='failure to create group',
+                module.fail_json(msg='Failure to create group',
                                  postdata=group_data)
             else:
                 module.exit_json(
-                    msg="Successfully created group through ansible!! not the ui!",
+                    msg='Group created successfully',
                     changed=True,
                     postdata=create_group_data
                 )
@@ -114,7 +114,7 @@ def main():
 
             group_match = find_group(group_data)
             if len(group_match) == 0:
-                module.exit_json(msg='nothing changed',
+                module.exit_json(msg='Nothing changed',
                                  changed=False, postdata=group_data)
 
             response = remove_group(group_match)
@@ -123,7 +123,7 @@ def main():
             group_match = find_group(group_data)
 
             if len(group_match) == 0:
-                module.exit_json(msg='group removed successfully',
+                module.exit_json(msg='Group removed successfully',
                                  changed=True, postdata=group_data)
             else:
                 module.fail_json(msg=response, postdata=create_group_data)
