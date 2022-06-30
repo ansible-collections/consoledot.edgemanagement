@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# (c) 2022, Adam Miller (maxamillion@gmail.com)
+# (c) 2022, Chris Santiago (resolutecoder@gmail.com)
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 from __future__ import absolute_import, division, print_function
@@ -13,82 +13,43 @@ from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmana
 from ansible.module_utils.six.moves.urllib.parse import quote
 from ansible.module_utils._text import to_text
 from ansible.module_utils.basic import AnsibleModule
-import q
 
 __metaclass__ = type
 
 DOCUMENTATION = """
 ---
-module: create_image
-short_description: Create a new RHEL for Edge Image on console.redhat.com
+module: groups
+short_description: Create and remove groups
 description:
-  - This module will build a RHEL for Edge Image on console.redhat.com
+  - This module will create and remove groups
 version_added: "0.1.0"
 options:
   name:
     description:
-      - Name ImageSet that will be created based on this new Image build request
+      - Group name that will be created
     required: true
     type: str
-  packages:
+  state:
     description:
-      - Name ImageSet that will be created based on this new Image build request
-    required: false
-    type: list
-  ssh_pubkey:
-    description:
-      - ssh public key to allow user C(ssh_user) to access to devices provisioned using this Image
+      - state description here
     required: true
     type: str
-  ssh_user:
-    description:
-      - user to allow ssh access too devices provisioned using this Image
-    required: true
-    type: str
-  distribution:
-    description:
-      - which RHEL Release to use to create this Image
-    required: false
-    type: str
-    choices: [ "rhel-85", "rhel-84" ]
-    default: "rhel-85"
-  arch:
-    description:
-      - Computer architecture the Image will be installed on
-    required: false
-    type: str
-    choices: [ "x86_64", "aarch64" ]
-    default: "x86_64"
-  installer:
-    description:
-      - Create an installable ISO along with the RHEL for Edge Image ostree commit
-    required: false
-    type: bool
-    default: true
+    choices: ['present', 'absent']
 
-author: Adam Miller @maxamillion
-"""
-
-
-# FIXME - provide correct example here
-RETURN = """
+author: Chris Santiago @resolutecoder
 """
 
 EXAMPLES = """
-- name: Create image named "BuiltFromAnsible" with the added package "vim-enhanced"
-  maxamillion.fleetmanager.create_image
-    name: "BuildFromAnsible"
-    packages:
-      - "vim-enhanced"
-  register: imagebuild_info
-
-- name: debugging output of the imagebuild_info registered variable
-  debug:
-    var: imagebuild_info
+- name: Create a group
+  maxamillion.fleetmanager.groups
+    name: 'AnsibleGroup42'
+    state: 'present'
 """
 
 
 def main():
+
+    EDGE_API_GROUPS = '/api/edge/v1/device-groups'
 
     argspec = dict(
         name=dict(required=True, type='str'),
@@ -99,106 +60,71 @@ def main():
 
     crc_request = ConsoleDotRequest(module)
 
-    # {
-    #  "name": "jhdskfjsdkfjdsjfjdsfkjk",
-    #  "version": 0,
-    #  "distribution": "rhel-85",
-    #  "imageType": "rhel-edge-installer",
-    #  "packages": [
-    #    {
-    #      "name": "tmux"
-    #    }
-    #  ],
-    #  "outputTypes": [
-    #    "rhel-edge-installer",
-    #    "rhel-edge-commit"
-    #  ],
-    #  "commit": {
-    #    "arch": "x86_64"
-    #  },
-    #  "installer": {
-    #    "username": "user1",
-    #    "sshkey": "ssh-rsa k"
-    #  }
-    # }
     create_group_data = {
         "name": module.params["name"],
         'type': 'static'
     }
 
-    # with_installer = module.params["installer"]
-    # if with_installer:
-    #     postdata["outputTypes"].append("rhel-edge-installer")
+    def find_group(group_data):
+        if group_data['data'] == None:
+            return []
+        return [
+            group for group in group_data['data'] if group['DeviceGroup']['Name'] == module.params['name']
+        ]
 
-    # for package in module.params["packages"]:
-    #     postdata["packages"].append(
-    #         {
-    #             "name": package,
-    #         }
-    #     )
+    def get_groups():
+        return crc_request.get(f'{EDGE_API_GROUPS}?name={module.params["name"]}')
 
-    # if module.params['state'] == 'absent':
-    #     response = crc_request.post(
-    #         "/api/edge/v1/device-groups/", data=json.dumps(create_group_data))
+    def post_group():
+        return crc_request.post(f'{EDGE_API_GROUPS}', data=json.dumps(create_group_data))
+
+    def remove_group(group):
+        group_id = group[0]['DeviceGroup']['ID']
+        return crc_request.delete(f'{EDGE_API_GROUPS}/{group_id}')
 
     try:
         if module.params['state'] == 'present':
-            response = crc_request.post(
-                "/api/edge/v1/device-groups/", data=json.dumps(create_group_data))
+            group_data = get_groups()
+            group_match = find_group(group_data)
 
-            group_data = crc_request.get(
-                '/api/edge/v1/device-groups?name=%s'.format(module.params['name']))
+            if len(group_match) == 1:
+                module.exit_json(
+                    msg="Nothing changed",
+                    changed=False,
+                    postdata=create_group_data
+                )
 
-            if group_data['count'] == 0:
+            response = post_group()
+
+            group_data = get_groups()
+
+            group_match = find_group(group_data)
+            if len(group_match) == 0:
                 module.fail_json(msg='failure to create group',
                                  postdata=group_data)
             else:
                 module.exit_json(
                     msg="Successfully created group through ansible!! not the ui!",
-                    image=response,
+                    changed=True,
                     postdata=create_group_data
                 )
 
         if module.params['state'] == 'absent':
-            group_data = crc_request.get(
-                '/api/edge/v1/device-groups?name=%s'.format(module.params['name']))
-            q.q(module.params['name'])
+            group_data = get_groups()
 
-            name_match = [
-                for group in group_data['data'] if group['DeviceGroup']['ID'] == module.params['name']
-            ]
-            # import q
-            # q.q(group_data)
-            q.q(group_data['count'])
-            # if group_data['count'] == 0:
-            if len(name_match) == 0:
+            group_match = find_group(group_data)
+            if len(group_match) == 0:
                 module.exit_json(msg='nothing changed',
-                                 change=False, postdata=group_data)
+                                 changed=False, postdata=group_data)
 
-            # group_id = group_data['data'][0]['DeviceGroup']['ID']
-            group_id = name_match[0]['DeviceGroup']['ID']
-            q.q(group_id)
-            response = crc_request.delete(
-                "/api/edge/v1/device-groups/%s".format(group_id))
-            q.q(response)
-            # response = crc_request.delete(
-            #     "/api/edge/v1/device-groups/27346")
-            # "/api/edge/v1/device-groups/%s".format(group_data['data'][0]['DeviceGroup']['ID']), data=json.dumps(create_group_data))
-            group_data = crc_request.get(
-                '/api/edge/v1/device-groups?name=%s'.format(module.params['name']))
-            # import q
-            # q.q(group_data)
+            response = remove_group(group_match)
 
-            if group_data['count'] == 0:
+            group_data = get_groups()
+            group_match = find_group(group_data)
+
+            if len(group_match) == 0:
                 module.exit_json(msg='group removed successfully',
-                                 change=True, postdata=group_data)
-
-            # if response["Status"] not in [400, 403, 404]:
-            #     module.exit_json(
-            #         msg="Successfully created group through ansible!! not the ui!",
-            #         image=response,
-            #         postdata=create_group_data
-            #     )
+                                 changed=True, postdata=group_data)
             else:
                 module.fail_json(msg=response, postdata=create_group_data)
 

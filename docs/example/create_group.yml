@@ -3,7 +3,7 @@
   hosts: CRC
   gather_facts: false
   vars:
-    group_name: 'ansible-group-santiago3'
+    group_name: 'ansible-group-santiago'
   tasks:
     - name: Create a group
       maxamillion.fleetmanager.groups:
@@ -11,4 +11,4 @@
         state: 'present'
       register: create_group_output
 
-    - debug: var=create_group_output
+    # - debug: var=create_group_output
