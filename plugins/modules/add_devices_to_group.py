@@ -6,7 +6,6 @@
 
 from __future__ import absolute_import, division, print_function
 import json
-import copy
 from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import (
     ConsoleDotRequest,
 )
@@ -18,20 +17,25 @@ __metaclass__ = type
 
 DOCUMENTATION = """
 ---
-module: groups
-short_description: Create and remove groups
+module: add_devices_to_group
+short_description: Create and remove devices to and from a group
 description:
-  - This module will create and remove groups
+  - This module will create and remove devices to and from a group
 version_added: "0.1.0"
 options:
   name:
     description:
-      - Group name that will be created
+      - Group name for adding devices to
     required: true
     type: str
+  devices:
+    description:
+      - List of devices to be added to a group
+    required: true
+    type: list
   state:
     description:
-      - Should the group exist or not
+      - Should the devices exist or not
     required  true
     type: str
     choices: ['present', 'absent']
@@ -40,10 +44,18 @@ author: Chris Santiago @resolutecoder
 """
 
 EXAMPLES = """
-- name: Create a group
-  maxamillion.fleetmanager.groups
-    name: 'AnsibleGroup42'
-    state: 'present'
+- name: Add devices to a group
+  hosts: CRC
+  gather_facts: false
+  tasks:
+    - name:
+      maxamillion.fleetmanager.add_devices_to_group:
+        name: 'ansible-group-santiago'
+        devices:
+          - 21402
+          - 21365
+          - 31601
+        state: 'present'
 """
 
 
