@@ -73,20 +73,6 @@ def main():
 
     crc_request = ConsoleDotRequest(module)
 
-    '''
-    {
-        "Devices": [
-            {
-                "ID": 21402
-            },
-            {
-                "ID": 21365
-            }
-        ]
-        "ID": 29106
-    }
-    '''
-
     devices_group_data = {
         'Devices': [],
         'ID': None
