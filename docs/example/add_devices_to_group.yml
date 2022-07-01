@@ -1,0 +1,13 @@
+---
+- name: Add devices to a group
+  hosts: CRC
+  gather_facts: false
+  tasks:
+    - name: 
+      maxamillion.fleetmanager.add_devices_to_group:
+        name: 'ansible-group-santiago'
+        devices:
+          - 21402 
+          - 21365
+          - 31601
+        state: 'present'

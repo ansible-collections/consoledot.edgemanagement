@@ -1,0 +1,19 @@
+---
+- name: Create a group
+  hosts: CRC
+  gather_facts: false
+  vars:
+    group_name: 'ansible-group-santiago'
+  tasks:
+    - name: Create a group
+      maxamillion.fleetmanager.groups:
+        name: '{{ group_name }}'
+        state: 'present'
+    - name: Add devices to a group
+      maxamillion.fleetmanager.add_devices_to_group:
+        name: '{{ group_name }}'
+        devices:
+          - 21402 
+          - 21365
+          - 31601
+        state: 'present'
