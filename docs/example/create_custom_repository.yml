@@ -1,0 +1,16 @@
+---
+- name: Create a custom repo
+  hosts: CRC
+  gather_facts: false
+  vars:
+    repo_name: 'AnsibleRepo123'
+    repo_url: 'http://repolocation.com/customrepo/repo'
+  tasks:
+    - name: Create a group
+      maxamillion.fleetmanager.custom_repositories:
+        name: '{{ repo_name }}'
+        base_url: '{{ repo_url }}'
+        state: 'present'
+      register: create_repo_output
+
+    # - debug: var=create_repo_output
