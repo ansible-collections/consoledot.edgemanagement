@@ -66,7 +66,7 @@ def main():
     argspec = dict(
         name=dict(required=True, type='str'),
         devices=dict(required=True, type='list'),
-        state=dict(required=True, type='str')
+        state=dict(required=True, type='str', choices=['present', 'absent'])
     )
 
     module = AnsibleModule(argument_spec=argspec, supports_check_mode=True)
