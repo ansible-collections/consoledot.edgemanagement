@@ -43,8 +43,9 @@ class ConsoleDotRequest(object):
         except ValueError as e:
             self.module.fail_json(msg=f"certificate not found: {e}")
 
-        if code == 500:
-            self.module.fail_json(msg=f"Error-500: {response}")
+        # if code == 500:
+        if code not in [200, 201]:
+            self.module.fail_json(msg=f"[{method}] Error-{code}: {response}")
 
         return response
 
