@@ -121,3 +121,9 @@ class InventoryModule(BaseInventoryPlugin, Constructable):
                 if item == selection:
                     self.inventory.set_variable(host_name, 'ansible_host', host[item])
 
+            if 'DeviceGroups' in host and host['DeviceGroups']:
+                for group in host['DeviceGroups']:
+                    self.inventory.add_group(self._sanitize_group_name(group['Name']))
+                    self.inventory.add_host(host['DeviceUUID'], group=self._sanitize_group_name(group['Name']))
+
+ 
