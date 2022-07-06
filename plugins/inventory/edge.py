@@ -45,9 +45,11 @@ plugin: maxamilion.fleetmanager.rhhinventory
 
 from ansible.plugins.inventory import BaseInventoryPlugin, Constructable
 from ansible.module_utils.six.moves.urllib.parse import urlencode, quote_plus
+from ansible.module_utils._text import to_bytes, to_native, to_text
 from ansible.module_utils.urls import Request
 from ansible.errors import AnsibleError
 from distutils.version import LooseVersion
+import ansible.module_utils.six.moves.urllib.error as urllib_error
 import json
 
 class InventoryModule(BaseInventoryPlugin, Constructable):
@@ -74,6 +76,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable):
                 self.display.vvv('Skipping due to inventory source not ending in "edge.yaml" nor "edge.yml"')
         return valid
 
+    import q
+    @q.t
     def parse(self, inventory, loader, path, cache=True):
         super(InventoryModule, self).parse(inventory, loader, path)
         self._read_config_data(path)
@@ -83,30 +87,35 @@ class InventoryModule(BaseInventoryPlugin, Constructable):
         strict = self.get_option('strict')
         selection = self.get_option('selection')
         vars_prefix = self.get_option('vars_prefix')
-        systems_by_id = {}
-        system_tags = {}
-        results = []
+        username = self.get_option('user')
+        password = self.get_option('password')
 
         self.headers = {"Accept": "application/json"}
-        self.request = Request(url_username=self.get_option('user'), url_password=self.get_option('password'))
+        self.request = Request(
+            url_username=username, url_password=password,
+            use_proxy=True, headers=self.headers, force_basic_auth=True
+        )
 
-        first_page = json.load(self.request.get(url))
-        import q; q.q(first_page)
+        first_page = json.load(self.request.get(url + "limit=1"))
 
         pagination_step = 20
+        results = []
         for offset in range(0, first_page['count'], pagination_step):
-            response = json.load(self.request.get(url + "limit=%d&offset=%d" % (pagination_step,offset)))
-
-            if response.status_code != 200:
-                raise AnsibleError("http error (%s): %s" %
-                                   (response.status_code, response.text))
-            elif response.status_code == 200:
-                results += response['devices']
-
+            try:
+                response = json.load(
+                    self.request.get(url + "limit=%d&offset=%d" % (pagination_step,offset))
+                )
+                results += response['data']['devices']
+            except urllib_error.HTTPError as e:
+                raise AnsibleError("http error: %s" % to_native(e))
+            except IndexError as e:
+                raise AnsibleError(
+                    "Invalid Response from server(%s): %s" % (to_native(self.server), to_native(e))
+                )
 
         for host in results:
-            host_name = self.inventory.add_host(host['DeviceName'])
-            systems_by_id[host['DeviceUUID']] = host_name
+            import q; q.q(host)
+            host_name = self.inventory.add_host(host['DeviceUUID'])
             for item in host.keys():
                 self.inventory.set_variable(host_name, vars_prefix + item, host[item])
                 if item == selection:
