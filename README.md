@@ -2,6 +2,12 @@
 
 PoC Collection for the Red Hat Edge Fleet Manager
 
+## Dependencies
+
+This collection relies on the [`ansible.netcommon`](https://github.com/ansible-collections/ansible.netcommon) collection, so if you're using [`ansible-core`](https://github.com/ansible/ansible) and not [`ansible`](https://pypi.org/project/ansible/) then you will need to run the following command:
+
+     $ ansible-galaxy install -r requirements.yml
+
 ## Hacking
 
 To use this while developing, run the following commands from within your local checkout to this git repo in order to symlink this git repo to the appropriate Ansible Collection path
