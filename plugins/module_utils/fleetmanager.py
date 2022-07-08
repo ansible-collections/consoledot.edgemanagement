@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # (c) 2022, Adam Miller (maxamillion@gmail.com)
@@ -16,32 +16,20 @@ from ansible.module_utils._text import to_text
 
 import json
 
-BASE_HEADERS = {"Content-Type": "application/json"}
-
-
 class ConsoleDotRequest(object):
-    def __init__(self, module, headers=None, not_rest_data_keys=None):
+    def __init__(self, module, headers=None):
 
         self.module = module
         self.connection = Connection(self.module._socket_path)
-
-        self.headers = headers if headers else BASE_HEADERS
 
     def _httpapi_error_handle(self, method, path, data=None):
         # FIXME - make use of handle_httperror(self, exception) where applicable
         #   https://docs.ansible.com/ansible/latest/network/dev_guide/developing_plugins_network.html#developing-plugins-httpapi
 
-        try:
-            code, response = self.connection.send_request(
-                method, path, data=data, headers=self.headers
-            )
+        code, response = self.connection.send_request(
+            method, path, data=data
+        )
 
-        except ConnectionError as e:
-            self.module.fail_json(msg=f"connection error occurred: {e}")
-        except CertificateError as e:
-            self.module.fail_json(msg=f"certificate error occurred: {e}")
-        except ValueError as e:
-            self.module.fail_json(msg=f"certificate not found: {e}")
 
         # if code == 500:
         if code not in [200, 201]:
