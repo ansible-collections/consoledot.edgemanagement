@@ -112,7 +112,6 @@ def main():
                 )
 
             response = post_repo()
-            import q; q.q(response)
 
             repo_data = get_repos()
 
