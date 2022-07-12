@@ -38,12 +38,12 @@ RETURN = """
 
 EXAMPLES = """
 - name: Get ImageSet Info for named image "WesternRegionTerminalPOS"
-  maxamillion.fleetmanager.imagesets_info:
+  consoledot.edgemanagement.imagesets_info:
     name: "WesternRegionTerminalPOS"
   register: imageinfo_output
 
 - name: Upgrade device 2ae43de4-bce7-4cfb-9039-af77458260ea with latest WesternRegionTerminalPOS image
-  maxamillion.fleetmanager.update_device:
+  consoledot.edgemanagement.update_device:
     client_id: "2ae43de4-bce7-4cfb-9039-af77458260ea"
     imageset_id: "{{ im
   register: imagebuild_info
@@ -57,7 +57,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_text
 
 from ansible.module_utils.six.moves.urllib.parse import quote
-from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import (
+from ansible_collections.consoledot.edgemanagement.plugins.module_utils.fleetmanager import (
     ConsoleDotRequest,
 )
 

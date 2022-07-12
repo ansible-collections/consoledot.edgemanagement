@@ -3,7 +3,7 @@
 # The namespace of the collection. This can be a company/brand/organization or product namespace under which all
 # content lives. May only contain alphanumeric lowercase characters and underscores. Namespaces cannot start with
 # underscores or numbers and cannot contain consecutive underscores
-namespace: maxamillion
+namespace: consoledot
 
 # The name of the collection. Has the same character restrictions as 'namespace'
 name: fleetmanager
@@ -17,13 +17,14 @@ readme: README.md
 # A list of the collection's content authors. Can be just the name or in the format 'Full Name <email> (url)
 # @nicks:irc/im.site#channel'
 authors:
-- Adam Miller <admiller@redhat.com>
-
+- Adam Miller <admiller@redhat.com> @maxamillion
+- Chris Santiago <chsantia@redhat.com> @resoluteCoder 
+- Matthew Santoval <msandova@redhat.com> @matoval
 
 ### OPTIONAL but strongly recommended
 
 # A short summary description of the collection
-description: PoC Collection for Red Hat Fleet Manager
+description: Collection for automating Red Hat Edge Management 
 
 # The path to the license file for the collection. This path is relative to the root of the collection. This key is
 # mutually exclusive with 'license'
@@ -37,16 +38,18 @@ tags: []
 # collection label 'namespace.name'. The value is a version range
 # L(specifiers,https://python-semanticversion.readthedocs.io/en/latest/#requirement-specification). Multiple version
 # range specifiers can be set and are separated by ','
-dependencies: {}
+dependencies: {
+  "ansible.netcommon": ">=3.0.0",
+}
 
 # The URL of the originating SCM repository
-repository:  https://github.com/maxamillion/maxamillion.fleetmanagement
+repository:  https://github.com/ansible-collections/consoledot.edgemanagement
 
 # The URL to any online docs
-documentation: https://github.com/maxamillion/maxamillion.fleetmanagement
+documentation: https://github.com/ansible-collections/consoledot.edgemanagement
 
 # The URL to the homepage of the collection/project
-homepage: https://github.com/maxamillion/maxamillion.fleetmanagement
+homepage: https://github.com/ansible-collections/consoledot.edgemanagement
 
 # The URL to the collection issue tracker
-issues: https://github.com/maxamillion/maxamillion.fleetmanagement/issues
+issues: https://github.com/ansible-collections/consoledot.edgemanagement/issues

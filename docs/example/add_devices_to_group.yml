@@ -4,7 +4,7 @@
   gather_facts: false
   tasks:
     - name: 
-      maxamillion.fleetmanager.add_devices_to_group:
+      consoledot.edgemanagement.add_devices_to_group:
         name: 'ansible-group-santiago'
         devices:
           - 21402 

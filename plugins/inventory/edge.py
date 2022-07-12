@@ -2,7 +2,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 DOCUMENTATION = '''
-    name: maxamillion.fleetmanager.edge
+    name: consoledot.edgemanagement.edge
     plugin_type: inventory
     short_description: Red Hat Edge Manager Inventory Plugin
     description:
@@ -12,9 +12,9 @@ DOCUMENTATION = '''
         - constructed
     options:
       plugin:
-        description: the name of this plugin, it should always be set to 'maxamillion.fleetmanager.edge' for this plugin to recognize it as it's own.
+        description: the name of this plugin, it should always be set to 'consoledot.edgemanagement.edge' for this plugin to recognize it as it's own.
         required: True
-        choices: ['maxamillion.fleetmanager.edge']
+        choices: ['consoledot.edgemanagement.edge']
       user:
         description: Red Hat username
         required: True
@@ -55,7 +55,7 @@ import json
 class InventoryModule(BaseInventoryPlugin, Constructable):
     ''' Host inventory parser for ansible using Red Hat Edge Manager as source. '''
 
-    NAME = 'maxamillion.fleetmanager.edge'
+    NAME = 'consoledot.edgemanagement.edge'
 
     def parse_tags(self, tag_list):
         results = {}

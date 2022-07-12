@@ -37,7 +37,7 @@ RETURN = """
 
 EXAMPLES = """
 - name: Get information about the device named "test-device"
-  maxamillion.fleetmanager.devices_info
+  consoledot.edgemanagement.devices_info
     name: test-device
   register: testdevice_info
 
@@ -50,7 +50,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_text
 
 from ansible.module_utils.six.moves.urllib.parse import quote
-from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import (
+from ansible_collections.consoledot.edgemanagement.plugins.module_utils.fleetmanager import (
     ConsoleDotRequest,
 )
 

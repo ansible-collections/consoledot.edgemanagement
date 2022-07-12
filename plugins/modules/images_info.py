@@ -40,7 +40,7 @@ RETURN = """
 
 EXAMPLES = """
 - name: Get information about the Rule named "Custom Company DDoS Rule"
-  maxamillion.fleetmanager.images_info
+  consoledot.edgemanagement.images_info
     id: 1024
   register: image1024_info
 
@@ -53,7 +53,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_text
 
 from ansible.module_utils.six.moves.urllib.parse import quote
-from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import (
+from ansible_collections.consoledot.edgemanagement.plugins.module_utils.fleetmanager import (
     ConsoleDotRequest,
 )
 

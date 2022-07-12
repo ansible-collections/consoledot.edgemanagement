@@ -1,11 +1,11 @@
-# Red Hat Edge Manager Ansible Collection
+# Red Hat console.redhat.com Edge Manager Ansible Collection
 
 ## Tech Preview
 
 This is the [Ansible
 Collection](https://docs.ansible.com/ansible/latest/dev_guide/developing_collections.html)
-provided by the Ansible Edge Automation
-Team for automating actions in [Red Hat Edge Manager](https://console.redhat.com/edge/fleet-management)
+provided by the Ansible Edge Automation Team for automating actions in
+[Red Hat Edge Management](https://console.redhat.com/edge/fleet-management)
 
 
 This Collection is meant for distribution through
@@ -29,16 +29,16 @@ PEP440 is the schema used to describe the versions of Ansible.
 
 ## Installing this collection
 
-You can install the IBM qradar collection with the Ansible Galaxy CLI:
+You can install the Edge Management collection with the Ansible Galaxy CLI:
 
-    ansible-galaxy collection install maxamillion.fleetmanager
+    ansible-galaxy collection install consoledot.edgemanagement
 
 You can also include it in a `requirements.yml` file and install it with `ansible-galaxy collection install -r requirements.yml`, using the format:
 
 ```yaml
 ---
 collections:
-  - name: maxamillion.fleetmanager
+  - name: consoledot.edgemanagement
 ```
 
 ## Using the Red Hat Edge Manager Collection
@@ -53,7 +53,7 @@ For password-based auth, `inventory.ini` (Note the password should be managed by
 console.redhat.com
 
 [CRC:vars]
-ansible_network_os=maxamillion.fleetmanager.consoledot
+ansible_network_os=consoledot.edgemanagement.consoledot
 ansible_connection=ansible.netcommon.httpapi
 ansible_user=foobar@example.com
 ansible_httpapi_pass=SuperSekretPassword
@@ -71,7 +71,7 @@ console.redhat.com
 
 [CRC:vars]
 ansible_connection=ansible.netcommon.httpapi
-ansible_network_os=maxamillion.fleetmanager.consoledot
+ansible_network_os=consoledot.edgemanagement.consoledot
 ansible_httpapi_use_ssl=yes
 ansible_httpapi_validate_certs=yes
 ansible_httpapi_consoledot_offline_token="MY_RED_HAT_API_OFFLINE_TOKEN_HERE"
@@ -94,7 +94,7 @@ examples below will display.
   gather_facts: false
   tasks:
     - name: get image info
-      maxamillion.fleetmanager.images_info:
+      consoledot.edgemanagement.images_info:
 			register: images_info_out
 		- debug: var=images_info_out
 ```
@@ -117,7 +117,7 @@ examples below will display.
 
 ## Contributing to this collection
 
-We welcome community contributions to this collection. If you find problems, please open an issue or create a PR against the [Red Hat Edge Manager collection repository](https://github.com/maxamillion/maxamillion.fleetmanager/issues). See [Contributing to Ansible-maintained collections](https://docs.ansible.com/ansible/devel/community/contributing_maintained_collections.html#contributing-maintained-collections) for complete details.
+We welcome community contributions to this collection. If you find problems, please open an issue or create a PR against the [Red Hat Edge Manager collection repository](https://github.com/ansible-collections/consoledot.edgemanagement/issues). See [Contributing to Ansible-maintained collections](https://docs.ansible.com/ansible/devel/community/contributing_maintained_collections.html#contributing-maintained-collections) for complete details.
 
 
 See the [Ansible Community Guide](https://docs.ansible.com/ansible/latest/community/index.html) for details on contributing to Ansible.
@@ -157,10 +157,10 @@ This collection relies on the [`ansible.netcommon`](https://github.com/ansible-c
 
 To use this while developing, run the following commands from within your local checkout to this git repo in order to symlink this git repo to the appropriate Ansible Collection path
 
-		$ mkdir -p ~/.ansible/collections/ansible_collections/maxamillion
-		$ ln -s $(pwd) ~/.ansible/collections/ansible_collections/maxamillion/fleetmanager
+		$ mkdir -p ~/.ansible/collections/ansible_collections/consoledot
+		$ ln -s $(pwd) ~/.ansible/collections/ansible_collections/consoledot/edgemanagement
 
 
-Make sure to set the proxy vars on the command line or in your shell environment if needed:
+Make sure to set the proxy vars on the command line or in your shell environment if needed (required for devs using `console.stage.redhat.com`:
 
 		$ HTTP_PROXY=http://proxy.foo.com:3128 HTTPS_PROXY=http://proxy.foo.com:3128 ansible-playbook myplaybook.yml -i myinventory.ini
