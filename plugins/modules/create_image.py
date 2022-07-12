@@ -137,7 +137,6 @@ def main():
     #  "thirdPartyRepositories": [
     #    {
     #      "name": "Anbile Custom Repo",
-    #      "url": "https://repos.fedorapeople.org/pulp/pulp/demo_repos/zoo"
     #    }
     #  ],
     #  "customPackages": [
@@ -176,6 +175,9 @@ def main():
         "description": f'RHEL for Edge Image Created by Ansible Module - {module.params["name"]}',
     }
 
+    def find_custom_repo(repo_name):
+      return crc_request.get(f'/api/edge/v1/thirdpartyrepo?name={quote(repo_name)}')
+
     with_installer = module.params["installer"]
     if with_installer:
         postdata["outputTypes"].append("rhel-edge-installer")
@@ -187,13 +189,18 @@ def main():
             }
         )
     for customRepository in module.params["custom_repositories"]:
-        postdata["thirdPartyRepositories"].append(
-            {
-                "name": customRepository["name"],
-                "url": customRepository["url"],
-                "id": customRepository["id"]
-            }
-        )
+        response = find_custom_repo(customRepository["name"])
+        if response['count'] > 0:
+            postdata["thirdPartyRepositories"].append(
+                {
+                    "name": response['data'][0]["Name"],
+                    "url": response['data'][0]["URL"],
+                    "id": response['data'][0]["ID"]
+                }
+            )
+        else:
+          module.fail_json(msg=f'Custom repository {customRepository["name"]} was not found')
+
     for customPackage in module.params["custom_packages"]:
         postdata["customPackages"].append(
             {

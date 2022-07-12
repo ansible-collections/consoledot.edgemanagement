@@ -12,9 +12,7 @@
           - vim-enhanced
           - tmux
         custom_repositories:
-          - name: "Anbile Custom Repo"
-            url: "https://repos.fedorapeople.org/pulp/pulp/demo_repos/zoo"
-            id: 13576
+          - name: "AnbileCustomRepo"
         custom_packages:
           - bear
         ssh_user: admiller
