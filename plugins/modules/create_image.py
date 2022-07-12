@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: create_image
-short_description: Create a new RHEL for Edge Image on console.redhat.com 
+short_description: Create a new RHEL for Edge Image on console.redhat.com
 description:
   - This module will build a RHEL for Edge Image on console.redhat.com
 version_added: "0.1.0"
@@ -26,16 +26,19 @@ options:
       - List any core RHEL package to add to this new image
     required: false
     type: list
+    elements: str
   custom_repositories:
     description:
       - Adding a custom repository allows you to add packages from outside Red Hat to this image
     required: false
     type: list
+    elements: str
   custom_packages:
     description:
       - List the packages you want to add from the custom repository you are adding to this image
     required: false
     type: list
+    elements: str
   ssh_pubkey:
     description:
       - ssh public key to allow user C(ssh_user) to access to devices provisioned using this Image
@@ -51,7 +54,7 @@ options:
       - which RHEL Release to use to create this Image
     required: false
     type: str
-    choices: [ "rhel-85", "rhel-84" ]
+    choices: ["rhel-84", "rhel-85", "rhel-86", "rhel-90"]
     default: "rhel-85"
   arch:
     description:
@@ -67,7 +70,8 @@ options:
     type: bool
     default: true
 
-author: Adam Miller @maxamillion 
+author:
+  - Adam Miller (@maxamillion)
 """
 
 
@@ -77,7 +81,7 @@ RETURN = """
 
 EXAMPLES = """
 - name: Create image named "BuiltFromAnsible" with the added package "vim-enhanced"
-  consoledot.edgemanagement.create_image
+  consoledot.edgemanagement.create_image:
     name: "BuildFromAnsible"
     packages:
       - "vim-enhanced"
@@ -108,9 +112,9 @@ def main():
 
     argspec = dict(
         name=dict(required=True, type="str"),
-        packages=dict(required=False, type="list", default=[]),
-        custom_repositories=dict(required=False, type="list", default=[]),
-        custom_packages=dict(required=False, type="list", default=[]),
+        packages=dict(required=False, type="list", elements="str", default=[]),
+        custom_repositories=dict(required=False, type="list", elements="str", default=[]),
+        custom_packages=dict(required=False, type="list", elements="str", default=[]),
         ssh_user=dict(required=True, type="str"),
         ssh_pubkey=dict(required=True, type="str"),
         distribution=dict(
@@ -176,7 +180,7 @@ def main():
     }
 
     def find_custom_repo(repo_name):
-      return crc_request.get(f'/api/edge/v1/thirdpartyrepo?name={quote(repo_name)}')
+        return crc_request.get(f"/api/edge/v1/thirdpartyrepo?name={quote(repo_name)}")
 
     with_installer = module.params["installer"]
     if with_installer:
@@ -190,16 +194,18 @@ def main():
         )
     for customRepository in module.params["custom_repositories"]:
         response = find_custom_repo(customRepository["name"])
-        if response['count'] > 0:
+        if response["count"] > 0:
             postdata["thirdPartyRepositories"].append(
                 {
-                    "name": response['data'][0]["Name"],
-                    "url": response['data'][0]["URL"],
-                    "id": response['data'][0]["ID"]
+                    "name": response["data"][0]["Name"],
+                    "url": response["data"][0]["URL"],
+                    "id": response["data"][0]["ID"],
                 }
             )
         else:
-          module.fail_json(msg=f'Custom repository {customRepository["name"]} was not found')
+            module.fail_json(
+                msg=f'Custom repository {customRepository["name"]} was not found'
+            )
 
     for customPackage in module.params["custom_packages"]:
         postdata["customPackages"].append(

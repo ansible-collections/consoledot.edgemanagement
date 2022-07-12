@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: imagesets_info
-short_description: Obtain information about one or many RHEL for Edge ImageSets on console.redhat.com 
+short_description: Obtain information about one or many RHEL for Edge ImageSets on console.redhat.com
 description:
   - This module obtains information about one or many RHEL for Edge ImageSets on console.redhat.com, with filter options.
 version_added: "0.1.0"
@@ -30,7 +30,8 @@ notes:
   - You may provide many filters and they will all be applied, except for C(id)
     as that will return only the Rule identified by the unique ID provided.
 
-author: Adam Miller @maxamillion 
+author:
+  - Adam Miller (@maxamillion)
 """
 
 
@@ -40,7 +41,7 @@ RETURN = """
 
 EXAMPLES = """
 - name: Get information about the Rule named "Custom Company DDoS Rule"
-  consoledot.edgemanagement.imagesets_info
+  consoledot.edgemanagement.imagesets_info:
     id: 1024
   register: imageset1024_info
 
