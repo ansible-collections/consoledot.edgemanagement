@@ -7,7 +7,7 @@
 from __future__ import absolute_import, division, print_function
 import json
 import copy
-from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import (
+from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
 )
 from ansible.module_utils.six.moves.urllib.parse import quote
@@ -41,7 +41,7 @@ author: Chris Santiago @resolutecoder
 
 EXAMPLES = """
 - name: Create a group
-  maxamillion.fleetmanager.groups
+  consoledot.edgemanagement.groups
     name: 'AnsibleGroup42'
     state: 'present'
 """

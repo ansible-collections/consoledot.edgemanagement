@@ -6,7 +6,7 @@
     repo_name: 'AnsibleRepo123'
   tasks:
     - name: Delete a group
-      maxamillion.fleetmanager.custom_repositories:
+      consoledot.edgemanagement.custom_repositories:
         name: '{{ repo_name }}'
         state: 'absent'
       register: delete_repo_output

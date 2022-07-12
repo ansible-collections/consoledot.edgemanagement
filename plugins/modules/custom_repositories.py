@@ -7,7 +7,7 @@
 from __future__ import absolute_import, division, print_function
 import json
 import validators
-from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import (
+from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
 )
 from ansible.module_utils.six.moves.urllib.parse import quote
@@ -46,7 +46,7 @@ author: Matthew Sandoval @matoval
 
 EXAMPLES = """
 - name: Create a custom repositories
-  maxamillion.fleetmanager.custom_repositories
+  consoledot.edgemanagement.custom_repositories
     name: 'AnsibleRepo123'
     base_url: 'http://repolocation.com/customrepo/repo'
     state: 'present'

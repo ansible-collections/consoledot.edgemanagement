@@ -6,11 +6,11 @@
     group_name: 'ansible-group-santiago'
   tasks:
     - name: Create a group
-      maxamillion.fleetmanager.groups:
+      consoledot.edgemanagement.groups:
         name: '{{ group_name }}'
         state: 'present'
     - name: Add devices to a group
-      maxamillion.fleetmanager.add_devices_to_group:
+      consoledot.edgemanagement.add_devices_to_group:
         name: '{{ group_name }}'
         devices:
           - 21402 

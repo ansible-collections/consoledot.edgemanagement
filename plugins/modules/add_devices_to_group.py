@@ -6,7 +6,7 @@
 
 from __future__ import absolute_import, division, print_function
 import json
-from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import (
+from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
 )
 from ansible.module_utils.six.moves.urllib.parse import quote
@@ -49,7 +49,7 @@ EXAMPLES = """
   gather_facts: false
   tasks:
     - name:
-      maxamillion.fleetmanager.add_devices_to_group:
+      consoledot.edgemanagement.add_devices_to_group:
         name: 'ansible-group-santiago'
         devices:
           - 21402

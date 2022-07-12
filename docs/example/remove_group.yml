@@ -6,7 +6,7 @@
     group_name: 'ansible-group-santiago'
   tasks:
     - name: Remove a group
-      maxamillion.fleetmanager.groups:
+      consoledot.edgemanagement.groups:
         name: '{{ group_name }}'
         state: 'absent'
       register: remove_group_output

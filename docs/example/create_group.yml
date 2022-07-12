@@ -6,7 +6,7 @@
     group_name: 'ansible-group-santiago'
   tasks:
     - name: Create a group
-      maxamillion.fleetmanager.groups:
+      consoledot.edgemanagement.groups:
         name: '{{ group_name }}'
         state: 'present'
       register: create_group_output

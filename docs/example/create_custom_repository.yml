@@ -7,7 +7,7 @@
     repo_url: 'http://repolocation.com/customrepo/repo'
   tasks:
     - name: Create a group
-      maxamillion.fleetmanager.custom_repositories:
+      consoledot.edgemanagement.custom_repositories:
         name: '{{ repo_name }}'
         base_url: '{{ repo_url }}'
         state: 'present'
