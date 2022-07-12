@@ -40,7 +40,7 @@ DOCUMENTATION = '''
 
 EXAMPLES = '''
 # basic example using environment vars for auth and no extra config
-plugin: maxamilion.fleetmanager.rhhinventory
+plugin: maxamilion.edgemanagement.rhhinventory
 '''
 
 from ansible.plugins.inventory import BaseInventoryPlugin, Constructable
