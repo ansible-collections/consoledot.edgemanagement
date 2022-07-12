@@ -1,0 +1,9 @@
+---
+- name: Remove multiple groups
+  hosts: CRC
+  gather_facts: false
+  tasks:
+    - name: Remove ten groups
+      maxamillion.fleetmanager.groups:
+        name: 'ansible-group-santiago*'
+        state: 'absent'

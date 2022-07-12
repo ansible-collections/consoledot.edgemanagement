@@ -5,6 +5,22 @@
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 from __future__ import absolute_import, division, print_function
+from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
+    ConsoleDotRequest,
+)
+import copy
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils._text import to_text
+from ansible.module_utils.six.moves.urllib.parse import quote
+from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import (
+    ConsoleDotRequest,
+)
+import re
+import fnmatch
+import json
+<< << << < HEAD
+== == == =
+>>>>>> > 001f56b(added base functionality for create and removing multiple groups)
 
 __metaclass__ = type
 
@@ -39,15 +55,6 @@ EXAMPLES = """
     state: 'present'
 """
 
-import json
-import copy
-from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
-    ConsoleDotRequest,
-)
-from ansible.module_utils.six.moves.urllib.parse import quote
-from ansible.module_utils._text import to_text
-from ansible.module_utils.basic import AnsibleModule
-
 
 def main():
 
@@ -64,29 +71,93 @@ def main():
 
     create_group_data = {"name": module.params["name"], "type": "static"}
 
-    def find_group(group_data):
-        if group_data["data"] is None:
+    def find_group(group_data, name: str = module.params['name']):
+        if group_data['data'] == None:
             return []
         return [
-            group
-            for group in group_data["data"]
-            if group["DeviceGroup"]["Name"] == module.params["name"]
+            group for group in group_data['data'] if group['DeviceGroup']['Name'] == name
         ]
 
-    def get_groups():
-        return crc_request.get(f'{EDGE_API_GROUPS}?name={module.params["name"]}')
+    def get_groups(name: str = module.params['name']):
+        return crc_request.get(f'{EDGE_API_GROUPS}?name={name}')
 
-    def post_group():
-        return crc_request.post(
-            f"{EDGE_API_GROUPS}", data=json.dumps(create_group_data)
-        )
+    def post_group(name):
+        group_data = {
+            'name': name,
+            'type': 'static'
+        }
+        return crc_request.post(f'{EDGE_API_GROUPS}', data=json.dumps(group_data))
 
     def remove_group(group):
-        group_id = group[0]["DeviceGroup"]["ID"]
-        return crc_request.delete(f"{EDGE_API_GROUPS}/{group_id}")
+        group_id = group['DeviceGroup']['ID']
+        return crc_request.delete(f'{EDGE_API_GROUPS}/{group_id}')
+
+    def parse_sequence(match):
+        start, end = match.group().replace(
+            '[', '').replace(']', '').split(':')
+        return (int(start), int(end))
+
+    def split_group_input(name: str):
+        first_word, last_word = re.split(
+            pattern, module.params['name'], 1)
+        return (first_word, last_word)
+
+    def expand_group_sequence(first_word: str, last_word: str, start: int, end: int):
+        group_names = []
+        for i in range(int(start), int(end) + 1):
+            group_name = ''.join((first_word, str(i), last_word))
+            group_names.append(group_name)
+        return group_names
+
+    def create_multiple_groups(first_word, group_names):
+        has_been_changed = False
+        message = 'Nothing changed'
+
+        # limit the results to iterate
+        group_data = get_groups(first_word)
+
+        for name in group_names:
+            group_match = find_group(group_data, name)
+            if len(group_match) == 0:
+                post_group(name)
+                if (not has_been_changed):
+                    has_been_changed = True
+                    message = 'Groups created successfully'
+
+        module.exit_json(msg=message, changed=has_been_changed)
+
+    def remove_multiple_groups(first_word, group_names):
+        has_been_changed = False
+        message = 'Nothing changed'
+
+        # limit the results to iterate
+        group_data = get_groups(first_word)
+
+        for name in group_names:
+            group_match = find_group(group_data, name)
+            if len(group_match) == 1:
+                remove_group(group_match[0])
+                if (not has_been_changed):
+                    has_been_changed = True
+                    message = 'Groups removed successfully'
+
+        module.exit_json(msg=message, changed=has_been_changed)
 
     try:
-        if module.params["state"] == "present":
+        if module.params['state'] == 'present':
+            # create multiple groups
+            pattern = '\[\d+:\d+\]'
+            match = re.search(pattern, module.params['name'])
+            if match:
+                first_word, last_word = split_group_input(
+                    module.params['name'])
+                start, end = parse_sequence(match)
+                group_names = expand_group_sequence(
+                    first_word, last_word, start, end)
+
+                create_multiple_groups(first_word, group_names)
+
+            # create single group
             group_data = get_groups()
             group_match = find_group(group_data)
 
@@ -95,21 +166,49 @@ def main():
                     msg="Nothing changed", changed=False, postdata=create_group_data
                 )
 
-            response = post_group()
+            post_group(module.params['name'])
 
-            group_data = get_groups()
+            module.exit_json(
+                msg='Group created successfully',
+                changed=True,
+                postdata=create_group_data
+            )
 
-            group_match = find_group(group_data)
-            if len(group_match) == 0:
-                module.fail_json(msg="Failure to create group", postdata=group_data)
-            else:
+        if module.params['state'] == 'absent':
+            # remove multiple groups with sequence
+            pattern = '\[\d+:\d+\]'
+            match = re.search(pattern, module.params['name'])
+            if match:
+                first_word, last_word = split_group_input(
+                    module.params['name'])
+                start, end = parse_sequence(match)
+                group_names = expand_group_sequence(
+                    first_word, last_word, start, end)
+                remove_multiple_groups(first_word, group_names)
+
+            # remove multiple groups with *
+            if '*' in module.params['name']:
+                first_word = ''
+                for string in module.params['name'].split('*'):
+                    if string != '':
+                        first_word = string
+
+                # limit the results to iterate
+                group_data = get_groups(first_word)
+
+                if group_data['data'] == None:
+                    module.exit_json(msg='Nothing changed', changed=False)
+
+                for group in group_data['data']:
+                    name = group['DeviceGroup']['Name']
+                    found_match = fnmatch.fnmatch(name, module.params['name'])
+                    if found_match:
+                        remove_group(group)
+
                 module.exit_json(
-                    msg="Group created successfully",
-                    changed=True,
-                    postdata=create_group_data,
-                )
+                    msg='Removed groups successfully', changed=True)
 
-        if module.params["state"] == "absent":
+            # remove single group
             group_data = get_groups()
 
             group_match = find_group(group_data)
@@ -118,7 +217,7 @@ def main():
                     msg="Nothing changed", changed=False, postdata=group_data
                 )
 
-            response = remove_group(group_match)
+            response = remove_group(group_match[0])
 
             group_data = get_groups()
             group_match = find_group(group_data)

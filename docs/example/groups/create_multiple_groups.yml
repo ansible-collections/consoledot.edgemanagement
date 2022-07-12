@@ -1,0 +1,9 @@
+---
+- name: Create multiple groups
+  hosts: CRC
+  gather_facts: false
+  tasks:
+    - name: Create ten groups
+      maxamillion.fleetmanager.groups:
+        name: 'ansible-group-santiago[1:10]'
+        state: 'present'
