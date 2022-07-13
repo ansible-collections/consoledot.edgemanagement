@@ -5,22 +5,19 @@
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 from __future__ import absolute_import, division, print_function
-from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
-    ConsoleDotRequest,
-)
-import copy
-from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils._text import to_text
-from ansible.module_utils.six.moves.urllib.parse import quote
+import json
+import fnmatch
+import re
 from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import (
     ConsoleDotRequest,
 )
-import re
-import fnmatch
-import json
-<< << << < HEAD
-== == == =
->>>>>> > 001f56b(added base functionality for create and removing multiple groups)
+from ansible.module_utils.six.moves.urllib.parse import quote
+from ansible.module_utils._text import to_text
+from ansible.module_utils.basic import AnsibleModule
+import copy
+from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
+    ConsoleDotRequest,
+)
 
 __metaclass__ = type
 
