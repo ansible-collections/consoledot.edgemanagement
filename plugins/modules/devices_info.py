@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: devices_info
-short_description: Obtain information about one or many RHEL for Edge systems on console.redhat.com 
+short_description: Obtain information about one or many RHEL for Edge systems on console.redhat.com
 description:
   - This module obtains information about one or many RHEL for Edge systems on console.redhat.com, with filter options.
 version_added: "0.1.0"
@@ -27,7 +27,8 @@ options:
     required: false
     type: str
 
-author: Adam Miller @maxamillion 
+author:
+  - Adam Miller (@maxamillion)
 """
 
 
@@ -37,7 +38,7 @@ RETURN = """
 
 EXAMPLES = """
 - name: Get information about the device named "test-device"
-  consoledot.edgemanagement.devices_info
+  consoledot.edgemanagement.devices_info:
     name: test-device
   register: testdevice_info
 

@@ -5,14 +5,6 @@
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 from __future__ import absolute_import, division, print_function
-import json
-import copy
-from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
-    ConsoleDotRequest,
-)
-from ansible.module_utils.six.moves.urllib.parse import quote
-from ansible.module_utils._text import to_text
-from ansible.module_utils.basic import AnsibleModule
 
 __metaclass__ = type
 
@@ -32,66 +24,75 @@ options:
   state:
     description:
       - Should the group exist or not
-    required  true
+    required: true
     type: str
     choices: ['present', 'absent']
 
-author: Chris Santiago @resolutecoder
+author:
+  - Chris Santiago (@resolutecoder)
 """
 
 EXAMPLES = """
 - name: Create a group
-  consoledot.edgemanagement.groups
+  consoledot.edgemanagement.groups:
     name: 'AnsibleGroup42'
     state: 'present'
 """
 
+import json
+import copy
+from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
+    ConsoleDotRequest,
+)
+from ansible.module_utils.six.moves.urllib.parse import quote
+from ansible.module_utils._text import to_text
+from ansible.module_utils.basic import AnsibleModule
+
 
 def main():
 
-    EDGE_API_GROUPS = '/api/edge/v1/device-groups'
+    EDGE_API_GROUPS = "/api/edge/v1/device-groups"
 
     argspec = dict(
-        name=dict(required=True, type='str'),
-        state=dict(required=True, type='str')
+        name=dict(required=True, type="str"),
+        state=dict(required=True, type="str", choices=['present', 'absent'])
     )
 
     module = AnsibleModule(argument_spec=argspec, supports_check_mode=True)
 
     crc_request = ConsoleDotRequest(module)
 
-    create_group_data = {
-        "name": module.params["name"],
-        'type': 'static'
-    }
+    create_group_data = {"name": module.params["name"], "type": "static"}
 
     def find_group(group_data):
-        if group_data['data'] == None:
+        if group_data["data"] is None:
             return []
         return [
-            group for group in group_data['data'] if group['DeviceGroup']['Name'] == module.params['name']
+            group
+            for group in group_data["data"]
+            if group["DeviceGroup"]["Name"] == module.params["name"]
         ]
 
     def get_groups():
         return crc_request.get(f'{EDGE_API_GROUPS}?name={module.params["name"]}')
 
     def post_group():
-        return crc_request.post(f'{EDGE_API_GROUPS}', data=json.dumps(create_group_data))
+        return crc_request.post(
+            f"{EDGE_API_GROUPS}", data=json.dumps(create_group_data)
+        )
 
     def remove_group(group):
-        group_id = group[0]['DeviceGroup']['ID']
-        return crc_request.delete(f'{EDGE_API_GROUPS}/{group_id}')
+        group_id = group[0]["DeviceGroup"]["ID"]
+        return crc_request.delete(f"{EDGE_API_GROUPS}/{group_id}")
 
     try:
-        if module.params['state'] == 'present':
+        if module.params["state"] == "present":
             group_data = get_groups()
             group_match = find_group(group_data)
 
             if len(group_match) == 1:
                 module.exit_json(
-                    msg="Nothing changed",
-                    changed=False,
-                    postdata=create_group_data
+                    msg="Nothing changed", changed=False, postdata=create_group_data
                 )
 
             response = post_group()
@@ -100,22 +101,22 @@ def main():
 
             group_match = find_group(group_data)
             if len(group_match) == 0:
-                module.fail_json(msg='Failure to create group',
-                                 postdata=group_data)
+                module.fail_json(msg="Failure to create group", postdata=group_data)
             else:
                 module.exit_json(
-                    msg='Group created successfully',
+                    msg="Group created successfully",
                     changed=True,
-                    postdata=create_group_data
+                    postdata=create_group_data,
                 )
 
-        if module.params['state'] == 'absent':
+        if module.params["state"] == "absent":
             group_data = get_groups()
 
             group_match = find_group(group_data)
             if len(group_match) == 0:
-                module.exit_json(msg='Nothing changed',
-                                 changed=False, postdata=group_data)
+                module.exit_json(
+                    msg="Nothing changed", changed=False, postdata=group_data
+                )
 
             response = remove_group(group_match)
 
@@ -123,8 +124,9 @@ def main():
             group_match = find_group(group_data)
 
             if len(group_match) == 0:
-                module.exit_json(msg='Group removed successfully',
-                                 changed=True, postdata=group_data)
+                module.exit_json(
+                    msg="Group removed successfully", changed=True, postdata=group_data
+                )
             else:
                 module.fail_json(msg=response, postdata=create_group_data)
 

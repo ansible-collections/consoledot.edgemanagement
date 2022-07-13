@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: update_image
-short_description: Update a new RHEL for Edge Image on console.redhat.com 
+short_description: Update a new RHEL for Edge Image on console.redhat.com
 description:
   - This module will build a RHEL for Edge Image on console.redhat.com
 version_added: "0.1.0"
@@ -26,8 +26,10 @@ options:
       - Aditional packages to add for this Image update build
     required: false
     type: list
+    elements: str
 
-author: Adam Miller @maxamillion
+author:
+  - Adam Miller (@maxamillion)
 """
 
 
@@ -37,7 +39,7 @@ RETURN = """
 
 EXAMPLES = """
 - name: Update image named "BuiltFromAnsible" with the added package "vim-enhanced"
-  consoledot.edgemanagement.update_image
+  consoledot.edgemanagement.update_image:
     id: 6148
     packages:
       - "vim-enhanced"
@@ -70,7 +72,7 @@ def main():
     # curl -H "Content-Type: application/json" --url https://console.redhat.com:443/api/edge/v1/image-sets?name="Ansible" | jq .Data[0].image_set.Images[0].ID
     argspec = dict(
         id=dict(required=True, type="int"),
-        packages=dict(required=False, type="list", default=[]),
+        packages=dict(required=False, type="list", default=[], elements="str"),
     )
 
     module = AnsibleModule(argument_spec=argspec, supports_check_mode=True)
@@ -79,7 +81,9 @@ def main():
 
     try:
         old_image = crc_request.get(f"/api/edge/v1/images/{module.params['id']}")
-        image_set = crc_request.get(f"/api/edge/v1/image-sets/{old_image['ImageSetID']}")
+        image_set = crc_request.get(
+            f"/api/edge/v1/image-sets/{old_image['ImageSetID']}"
+        )
         #   {
         #     "name": "tpapaioa-20220204-1",
         #     "version": 2,
@@ -99,25 +103,24 @@ def main():
         #     }
         #   }
         postdata = {
-            'name': old_image['Name'],
-            'version': image_set['Data']['image_set']['Version'] + 1,
-            'description': f'RHEL for Edge Image Updated by Ansible Module - {old_image["Name"]}',
-            'distribution': old_image['Distribution'],
-            'packages': [],
-            'outputTypes': ["rhel-edge-commit"],
-            'commit': {
-                'arch': old_image['Commit']['Arch'],
+            "name": old_image["Name"],
+            "version": image_set["Data"]["image_set"]["Version"] + 1,
+            "description": f'RHEL for Edge Image Updated by Ansible Module - {old_image["Name"]}',
+            "distribution": old_image["Distribution"],
+            "packages": [],
+            "outputTypes": ["rhel-edge-commit"],
+            "commit": {
+                "arch": old_image["Commit"]["Arch"],
             },
-            'installer':
-            {
-                'username': "",
-                'sshkey': "",
+            "installer": {
+                "username": "",
+                "sshkey": "",
             },
         }
 
         # FIXME - maybe deal with installer later
-        #with_installer = module.params["installer"]
-        #if with_installer and ("rhel-edge-installer" not in postdata["OutputTypes"]):
+        # with_installer = module.params["installer"]
+        # if with_installer and ("rhel-edge-installer" not in postdata["OutputTypes"]):
         #    postdata["OutputTypes"].append("rhel-edge-installer")
 
         for package in module.params["packages"]:

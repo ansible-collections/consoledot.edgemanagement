@@ -7,7 +7,8 @@ __metaclass__ = type
 
 DOCUMENTATION = """
 ---
-author: Adam Miller <maxamillion>
+author:
+ - Adam Miller (@maxamillion)
 httpapi : consoledot
 short_description: HttpApi Plugin for console.redhat.com
 description:
@@ -49,6 +50,7 @@ BASE_HEADERS = {
     "Content-Type": "application/json",
 }
 
+
 class HttpApi(HttpApiBase):
     def _hack_the_auth(self):
         # I am committing sins against humanity because the Red Hat SSO does
@@ -62,7 +64,7 @@ class HttpApi(HttpApiBase):
             token_request_form_data = {
                 "grant_type": "refresh_token",
                 "client_id": "rhsm-api",
-                "refresh_token": self.get_option("offline_token")
+                "refresh_token": self.get_option("offline_token"),
             }
 
             result = []
@@ -72,16 +74,18 @@ class HttpApi(HttpApiBase):
                     if value is not None:
                         result.append((to_text(key), to_text(value)))
 
-            results = json.load(request.open(
-                "POST",
-                "https://%s/auth/realms/redhat-external/protocol/openid-connect/token" % self.get_option('token_domain'),
-                data=to_text(urlencode(result, doseq=True)),
-            ))
+            results = json.load(
+                request.open(
+                    "POST",
+                    "https://%s/auth/realms/redhat-external/protocol/openid-connect/token"
+                    % self.get_option("token_domain"),
+                    data=to_text(urlencode(result, doseq=True)),
+                )
+            )
 
             self.connection._auth = {
-                'Authorization': "Bearer %s" % to_text(results['access_token'])
+                "Authorization": "Bearer %s" % to_text(results["access_token"])
             }
-
 
     def send_request(self, request_method, path, data=None, headers=None):
 
@@ -89,7 +93,7 @@ class HttpApi(HttpApiBase):
 
         try:
             headers = headers if headers else BASE_HEADERS
-            headers['User-Agent'] = "curl/7.82.0"
+            headers["User-Agent"] = "curl/7.82.0"
             self._display_request(request_method)
             if self.connection._auth:
                 headers.update(self.connection._auth)
@@ -104,9 +108,7 @@ class HttpApi(HttpApiBase):
             return e.code, error
 
     def _display_request(self, request_method):
-        display.vvvvv(
-            "Web Services: %s %s" % (request_method, self.connection._url)
-        )
+        display.vvvvv("Web Services: %s %s" % (request_method, self.connection._url))
 
     def _response_to_json(self, response_text):
         try:
@@ -118,4 +120,3 @@ class HttpApi(HttpApiBase):
     def update_auth(self, response, response_text):
         self._hack_the_auth()
         return self.connection._auth if self.connection._auth else None
-
