@@ -5,20 +5,6 @@
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 from __future__ import absolute_import, division, print_function
-import json
-import fnmatch
-import re
-from ansible_collections.maxamillion.fleetmanager.plugins.module_utils.fleetmanager import (
-    ConsoleDotRequest,
-)
-from ansible.module_utils.six.moves.urllib.parse import quote
-from ansible.module_utils._text import to_text
-from ansible.module_utils.basic import AnsibleModule
-import copy
-from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
-    ConsoleDotRequest,
-)
-
 __metaclass__ = type
 
 DOCUMENTATION = """
@@ -41,16 +27,51 @@ options:
     type: str
     choices: ['present', 'absent']
 
+notes:
+    - Supported input for creating group(s) are a string and a string with a sequence ([1:10]) at the end.
+    - Supported input for removing group(s) are a string, string with a wildcard (* is only supported), and a sequence ([2:6] inclusive).
 author:
-  - Chris Santiago (@resolutecoder)
+  - Chris Santiago (@resoluteCoder)
 """
 
 EXAMPLES = """
-- name: Create a group
+- name: Create a single group
   consoledot.edgemanagement.groups:
     name: 'AnsibleGroup42'
     state: 'present'
+
+- name: Create ten groups
+  consoledot.edgemanagement.groups:
+    name: 'AnsibleGroup[1:10]'
+    state: 'present'
+
+- name: Remove a single group
+  consoledot.edgemanagement.groups:
+    name: 'AnsibleGroup42'
+    state: 'absent'
+
+# Removing with a wildcard
+- name: Remove multiple groups
+  consoledot.edgemanagement.groups:
+    name: 'AnsibleGroup*'
+    state: 'absent'
+
+# Removing with a sequence
+- name: Remove multiple groups
+  consoledot.edgemanagement.groups:
+    name: 'AnsibleGroup[5:6]'
+    state: 'absent'
 """
+
+from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
+    ConsoleDotRequest,
+)
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils._text import to_text
+from ansible.module_utils.six.moves.urllib.parse import quote
+import re
+import fnmatch
+import json
 
 
 def main():

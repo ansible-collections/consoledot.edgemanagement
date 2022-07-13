@@ -4,6 +4,6 @@
   gather_facts: false
   tasks:
     - name: Create ten groups
-      maxamillion.fleetmanager.groups:
+      consoledot.edgemanagement.groups:
         name: 'ansible-group-santiago[1:10]'
         state: 'present'
