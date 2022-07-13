@@ -39,7 +39,7 @@ RETURN = """
 
 EXAMPLES = """
 - name: Update image named "BuiltFromAnsible" with the added package "vim-enhanced"
-  consoledot.edgemanagement.update_image:
+  consoledot.edgemanagement.update_image
     id: 6148
     packages:
       - "vim-enhanced"
