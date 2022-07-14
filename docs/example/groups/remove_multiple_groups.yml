@@ -1,0 +1,9 @@
+---
+- name: Remove multiple groups
+  hosts: CRC
+  gather_facts: false
+  tasks:
+    - name: Remove any groups that match ansible-group-santiago
+      consoledot.edgemanagement.groups:
+        name: 'ansible-group-santiago*'
+        state: 'absent'
