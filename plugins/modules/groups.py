@@ -164,7 +164,7 @@ def main():
     try:
         if module.params['state'] == 'present':
             # create multiple groups
-            pattern = '\[\d+:\d+\]'
+            pattern = r'\[\d+:\d+\]'
             match = re.search(pattern, module.params['name'])
             if match:
                 first_word, last_word = split_group_input(
@@ -194,7 +194,7 @@ def main():
 
         if module.params['state'] == 'absent':
             # remove multiple groups with sequence
-            pattern = '\[\d+:\d+\]'
+            pattern = r'\[\d+:\d+\]'
             match = re.search(pattern, module.params['name'])
             if match:
                 first_word, last_word = split_group_input(
@@ -215,7 +215,7 @@ def main():
                 # limit the results to iterate
                 group_data = get_groups(first_word)
 
-                if group_data['data'] == None:
+                if group_data['data'] is None:
                     module.exit_json(msg='Nothing changed', changed=False)
 
                 for group in group_data['data']:
