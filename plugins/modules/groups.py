@@ -90,7 +90,7 @@ def main():
     create_group_data = {"name": module.params["name"], "type": "static"}
 
     def find_group(group_data, name: str = module.params['name']):
-        if group_data['data'] == None:
+        if group_data['data'] is None:
             return []
         return [
             group for group in group_data['data'] if group['DeviceGroup']['Name'] == name
@@ -210,6 +210,7 @@ def main():
                 for string in module.params['name'].split('*'):
                     if string != '':
                         first_word = string
+                        break
 
                 # limit the results to iterate
                 group_data = get_groups(first_word)
