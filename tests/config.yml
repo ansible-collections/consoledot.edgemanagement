@@ -6,7 +6,6 @@
 modules:
   # Configuration for modules/module_utils.
   # These settings do not apply to other content in the collection.
-
   python_requires: controller
   # Python versions supported by modules/module_utils.
   # This setting is required.
@@ -39,4 +38,3 @@ modules:
   # These settings only apply to modules/module_utils.
   # It is not possible to declare supported Python versions for controller-only code.
   # All Python versions supported by the controller must be supported by controller-only code.
-
