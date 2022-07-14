@@ -68,6 +68,32 @@ stages:
               test: sanity
             - name: Units
               test: units
+  - stage: Sanity_2_12
+    displayName: Ansible 2.12 sanity
+    dependsOn: []
+    jobs:
+      - template: templates/matrix.yml
+        parameters:
+          nameFormat: '{0}'
+          testFormat: '2.12/{0}'
+          targets:
+            - name: Sanity
+              test: sanity
+            - name: Units
+              test: units
+  - stage: Sanity_2_11
+    displayName: Ansible 2.11 sanity
+    dependsOn: []
+    jobs:
+      - template: templates/matrix.yml
+        parameters:
+          nameFormat: '{0}'
+          testFormat: '2.11/{0}'
+          targets:
+            - name: Sanity
+              test: sanity
+            - name: Units
+              test: units
 
 ## Finally
 
@@ -76,5 +102,7 @@ stages:
     dependsOn:
       - Sanity_devel
       - Sanity_2_13
+      - Sanity_2_12
+      - Sanity_2_11
     jobs:
       - template: templates/coverage.yml
