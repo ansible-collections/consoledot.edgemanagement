@@ -9,7 +9,7 @@ DOCUMENTATION = """
 ---
 author:
  - Adam Miller (@maxamillion)
-httpapi : consoledot
+name: consoledot
 short_description: HttpApi Plugin for console.redhat.com
 description:
   - This HttpApi plugin provides methods to connect to console.redhat.com
