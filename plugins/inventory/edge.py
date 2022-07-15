@@ -3,8 +3,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = """
-    name: consoledot.edgemanagement.edge
-    plugin_type: inventory
+    name: edge
     short_description: Red Hat Edge Manager Inventory Plugin
     description:
         - Creates dynamic inventory from the console.redhat.com Edge Manager inventory service.
@@ -49,7 +48,6 @@ from ansible.module_utils.six.moves.urllib.parse import urlencode, quote_plus
 from ansible.module_utils._text import to_bytes, to_native, to_text
 from ansible.module_utils.urls import Request
 from ansible.errors import AnsibleError
-from distutils.version import LooseVersion
 import ansible.module_utils.six.moves.urllib.error as urllib_error
 import json
 

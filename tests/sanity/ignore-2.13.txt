@@ -1,5 +1,7 @@
 tests/utils/shippable/check_matrix.py replace-urlopen
 tests/utils/shippable/timing.py shebang
+plugins/inventory/edge.py validate-modules:missing-gplv3-license # This collection is MIT Licensed
+plugins/httpapi/consoledot.py validate-modules:missing-gplv3-license # This collection is MIT Licensed
 plugins/modules/add_devices_to_group.py validate-modules:missing-gplv3-license # This collection is MIT Licensed
 plugins/modules/create_image.py validate-modules:missing-gplv3-license # This collection is MIT Licensed
 plugins/modules/custom_repositories.py validate-modules:missing-gplv3-license # This collection is MIT Licensed
