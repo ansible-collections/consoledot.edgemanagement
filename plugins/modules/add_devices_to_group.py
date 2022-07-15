@@ -5,6 +5,13 @@
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 from __future__ import absolute_import, division, print_function
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils._text import to_text
+from ansible.module_utils.six.moves.urllib.parse import quote
+from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
+    ConsoleDotRequest,
+)
+import json
 
 __metaclass__ = type
 
@@ -53,14 +60,6 @@ EXAMPLES = """
         state: 'present'
 """
 
-import json
-from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
-    ConsoleDotRequest,
-)
-from ansible.module_utils.six.moves.urllib.parse import quote
-from ansible.module_utils._text import to_text
-from ansible.module_utils.basic import AnsibleModule
-
 
 def main():
 
@@ -68,7 +67,7 @@ def main():
 
     argspec = dict(
         name=dict(required=True, type="str"),
-        devices=dict(required=True, type="list", elements="str"),
+        devices=dict(required=True, type="list", elements="int"),
         state=dict(required=True, type="str", choices=["present", "absent"]),
     )
 

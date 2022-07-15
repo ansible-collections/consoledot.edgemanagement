@@ -1,0 +1,32 @@
+---
+- name: Filter systems
+  hosts: CRC
+  gather_facts: false
+  tasks:
+    - name: Filter systems by insight facts
+      consoledot.edgemanagement.filter_systems:
+        host_type: 'edge'
+        # remove facts and put sub facts top level param
+        display_name: 'frontend'
+        # fqdn: 'localhost.localdomain'
+        os_release: '8.5'
+        cores_per_socket: 1
+        infrastructure_vendor: 'kvm'
+        number_of_cpus: 1
+        number_of_sockets: 1
+        os_kernel_version: '4.18.0'
+        enabled_services:
+          - 'firewalld'
+          - 'rhcd'
+        installed_services:
+          - 'rhsm'
+          - 'rhcd'
+          # can only have one
+          # - fqdn: 'localhost.localdomain'
+          # need parse slashes on date
+          # - bios_release_date: '04/01/2014'
+          # has to be exact match, wont partial filter
+          # - cpu_model: 'Intel'
+      register: filtered_systems
+
+    - debug: var=filtered_systems['edge_systems']

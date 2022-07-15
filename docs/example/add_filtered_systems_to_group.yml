@@ -1,0 +1,34 @@
+---
+- name: Filter systems and add them to a new group
+  hosts: CRC
+  gather_facts: false
+  tasks:
+    - name: Filter systems by insight facts
+      consoledot.edgemanagement.filter_systems:
+        host_type: 'edge'
+        display_name: 'frontend'
+        os_release: '8.5'
+        cores_per_socket: 1
+        infrastructure_vendor: 'kvm'
+        number_of_cpus: 1
+        number_of_sockets: 1
+        os_kernel_version: '4.18.0'
+        installed_services:
+          - 'rhsm'
+          - 'rhcd'
+        enabled_services:
+          - 'firewalld'
+          - 'rhcd'
+      register: filtered_systems
+
+    - name: Create new group to hold filtered systems
+      consoledot.edgemanagement.groups:
+        name: 'ansible-group-santiago'
+        state: 'present'
+
+    - name: Add systems to the newly created group
+      consoledot.edgemanagement.add_devices_to_group:
+        name: 'ansible-group-santiago'
+        devices: '{{ filtered_systems["edge_systems"] }}'
+        state: 'present'
+
