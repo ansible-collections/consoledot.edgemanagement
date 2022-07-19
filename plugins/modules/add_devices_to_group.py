@@ -26,7 +26,7 @@ options:
       - List of devices to be added to a group
     required: true
     type: list
-    elements: str
+    elements: int
   state:
     description:
       - Should the devices exist or not
