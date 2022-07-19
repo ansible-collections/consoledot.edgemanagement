@@ -49,11 +49,23 @@ RETURN = """
 """
 
 
+def parse_ip_pattern(section):
+    if section == '[]':
+        return (0, 255)
+
+    if ':' not in section:
+        return (int(section), int(section))
+
+    min, max = section.replace('[', '').replace(']', '').split(':')
+    return (int(min), int(max))
+
+
 def main():
     argspec = dict(
         host_type=dict(required=False, type="str"),
         display_name=dict(required=False, type="str"),
         fqdn=dict(required=False, type="str"),
+        ipv4=dict(required=False, type="str"),
         hostname_or_id=dict(required=False, type="str"),
         insights_id=dict(required=False, type="str"),
         os_release=dict(required=False, type="str"),
@@ -83,8 +95,8 @@ def main():
         for param in module.params.items():
             fact_key, fact_value = param
 
-            # excluding param to not add to the filter
-            if fact_key == 'host_type' or fact_value is None:
+            excluded_params = ['host_type', 'ipv4']
+            if fact_key in excluded_params or fact_value is None:
                 continue
 
             filter_string = ''
@@ -102,26 +114,24 @@ def main():
                     fact_key, fact_value)
                 queries.append(filter_string)
 
-            # for fact_key, fact_value in param.items():
-            #     q.q('here', fact_key, fact_value)
-            #     filter_string = ''
-            #     if fact_key in top_level_filters:
-            #         filter_string = '%s=%s' % (
-            #             fact_key, fact_value)
-            #         queries.append(filter_string)
-            #     elif type(fact_value) is list:
-            #         for value in fact_value:
-            #             filter_string = 'filter[system_profile][%s][]=%s' % (
-            #                 fact_key, value)
-            #             queries.append(filter_string)
-            #     else:
-            #         filter_string = 'filter[system_profile][%s][]=%s' % (
-            #             fact_key, fact_value)
-            #         queries.append(filter_string)
-
         api_request = '%s?%s' % (
             INVENTORY_API, '&'.join(queries))
         response = crc_request.get(api_request)
+
+        matched_systems = []
+        for system in response['results']:
+            for ip in system['ip_addresses']:
+                if ':' not in ip:
+                    if ip != '127.0.0.1':
+                        for index, section in enumerate(module.params['ipv4'].split('.')):
+                            min, max = parse_ip_pattern(section)
+                            ip_section = int(ip.split('.')[index])
+                            if ip_section < min or ip_section > max:
+                                break
+                            if index == 3:
+                                matched_systems.append(system)
+                                q.q(ip)
+        q.q(len(matched_systems))
 
         if module.params['host_type'] == 'edge':
             edge_systems = []
@@ -131,10 +141,10 @@ def main():
                 response = crc_request.get(api_request)
                 edge_systems.append(response['Device']['ID'])
             module.exit_json(
-                msg='ran', edge_systems=edge_systems, inventory=[])
+                msg='ran', edge_systems=edge_systems, inventory_systems=[])
         else:
             module.exit_json(msg='ran', edge_systems=[],
-                             inventory=response['results'])
+                             inventory_systems=matched_systems)
     except Exception as e:
         module.fail_json(msg=to_text(e))
 
