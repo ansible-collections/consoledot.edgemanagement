@@ -12,7 +12,7 @@
           - vim-enhanced
           - tmux
         custom_repositories:
-          - name: "AnbileCustomRepo"
+          - AnbileCustomRepo
         custom_packages:
           - bear
         ssh_user: admiller
