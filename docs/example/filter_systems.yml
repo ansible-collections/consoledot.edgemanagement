@@ -6,8 +6,6 @@
     - name: Filter systems by insight facts
       consoledot.edgemanagement.filter_systems:
         host_type: 'edge'
-        # display_name: 'frontend'
-        # ipv4: '[].[].[].[]'
         ipv4: '192.168.122.[22:199]'
         os_release: '8.5'
         cores_per_socket: 1
@@ -21,11 +19,6 @@
         installed_services:
           - 'rhsm'
           - 'rhcd'
-        # fqdn: 'localhost.localdomain'
-        # need parse slashes on date
-        # - bios_release_date: '04/01/2014'
-        # has to be exact match, wont partial filter
-        # - cpu_model: 'Intel'
       register: filtered_systems
 
-    - debug: var=filtered_systems['edge_systems']
+    - debug: var=filtered_systems['matched_systems']

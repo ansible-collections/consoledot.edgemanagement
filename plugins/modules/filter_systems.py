@@ -6,7 +6,6 @@
 
 from __future__ import absolute_import, division, print_function
 import json
-import q
 from ansible.module_utils.six.moves.urllib.parse import quote
 from ansible.module_utils._text import to_text
 from ansible.module_utils.basic import AnsibleModule
@@ -18,31 +17,112 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: groups
-short_description: Create and remove groups
+short_description: Filter systems with facts
 description:
-  - This module will create and remove groups
+  - This module will filter systems with insights facts
 version_added: "0.1.0"
 options:
-  facts:
+  host_type:
     description:
-      - Insight facts to be filtered on
-    required: true
+      - The host type to filter by
+    required: false
+    type: str
+  display_name:
+    description:
+      - The display name to filter by
+    required: false
+        type: str
+  hostname_or_id:
+    description:
+      - The hostname or id to filter by
+    required: false
+        type: str
+  fqdn:
+    description:
+      - The fully qualified domain name to filter by
+    required: false
+        type: str
+  insights_id:
+    description:
+      - The insights id to filter by
+    required: false
+        type: str
+  ipv4:
+    description:
+      - The ipv4 address to filter by
+    required: false
+    type: str
+  os_release:
+    description:
+      - The os release to filter by
+    required: false
+    type: str
+  cores_per_socket:
+    description:
+      - The cores per socket to filter by
+    required: false
+    type: str
+  infrastructure_vendor:
+    description:
+      - The infrastructure vendor to filter by
+    required: false
+    type: str
+  number_of_cpus:
+    description:
+      - The number of cpus to filter by
+    required: false
+    type: str
+  number_of_sockets:
+    description:
+      - The number of sockets to filter by
+    required: false
+    type: str
+  os_kernel_version:
+    description:
+      - The os kernel version to filter by
+    required: false
+    type: str
+  enabled_services:
+    description:
+      - The enabled services to filter by
+    required: false
     type: list
+    elements: str
+  installed_services:
+    description:
+      - The installed services to filter by
+    required: false
+    type: list
+    elements: str
 
 notes:
-    - Supported input for creating group(s) are a string and a string with a sequence ([1:10]) at the end.
-    - Supported input for removing group(s) are a string, string with a wildcard (* is only supported), and a sequence ([2:6] inclusive).
+    - Edge related data (edge_device_id, edge_image_id, edge_update_available)  is injected in system info if host type is edge
 author:
   - Chris Santiago (@resoluteCoder)
 """
 
 EXAMPLES = """
-- name: Filter by systems
-  consoledot.edgemanagement.filter_systems:
-    facts:
-      - display_name: 'test'
-      - fqdn: 'test.test'
-      - cpu_model: 'test'
+- name: Filter systems
+  tasks:
+    - name: Filter systems by insight facts
+      consoledot.edgemanagement.filter_systems:
+        host_type: 'edge'
+        ipv4: '192.168.122.[22:199]'
+        os_release: '8.5'
+        cores_per_socket: 1
+        infrastructure_vendor: 'kvm'
+        number_of_cpus: 1
+        number_of_sockets: 1
+        os_kernel_version: '4.18.0'
+        enabled_services:
+          - 'firewalld'
+          - 'rhcd'
+        installed_services:
+          - 'rhsm'
+          - 'rhcd'
+      register: filtered_systems
+
+    - debug: var=filtered_systems['matched_systems']
 """
 
 RETURN = """
@@ -58,6 +138,49 @@ def parse_ip_pattern(section):
 
     min, max = section.replace('[', '').replace(']', '').split(':')
     return (int(min), int(max))
+
+
+def get_queries(facts):
+    top_level_filters = ['display_name',
+                         'fqdn', 'hostname_or_id', 'insights_id']
+    queries = []
+    for fact in facts:
+        fact_key, fact_value = fact
+
+        excluded_params = ['host_type', 'ipv4']
+        if fact_key in excluded_params or fact_value is None:
+            continue
+
+        filter_string = ''
+        if fact_key in top_level_filters:
+            filter_string = '%s=%s' % (
+                fact_key, fact_value)
+            queries.append(filter_string)
+        elif type(fact_value) is list:
+            for value in fact_value:
+                filter_string = 'filter[system_profile][%s][]=%s' % (
+                    fact_key, value)
+                queries.append(filter_string)
+        else:
+            filter_string = 'filter[system_profile][%s][]=%s' % (
+                fact_key, fact_value)
+            queries.append(filter_string)
+    return queries
+
+
+def get_matched_systems_by_ipv4(systems, ipv4_sections):
+    matched_systems = []
+    for system in systems:
+        for ip in system['ip_addresses']:
+            if ':' not in ip and ip != '127.0.0.1':
+                for index, section in enumerate(ipv4_sections):
+                    min, max = parse_ip_pattern(section)
+                    ip_section = int(ip.split('.')[index])
+                    if ip_section < min or ip_section > max:
+                        break
+                    if index == 3:  # last element in list
+                        matched_systems.append(system)
+    return matched_systems
 
 
 def main():
@@ -87,66 +210,28 @@ def main():
     INVENTORY_API = '/api/inventory/v1/hosts'
     EDGE_DEVICES_API = '/api/edge/v1/devices'
 
-    top_level_filters = ['display_name',
-                         'fqdn', 'hostname_or_id', 'insights_id']
-
     try:
-        queries = []
-        for param in module.params.items():
-            fact_key, fact_value = param
-
-            excluded_params = ['host_type', 'ipv4']
-            if fact_key in excluded_params or fact_value is None:
-                continue
-
-            filter_string = ''
-            if fact_key in top_level_filters:
-                filter_string = '%s=%s' % (
-                    fact_key, fact_value)
-                queries.append(filter_string)
-            elif type(fact_value) is list:
-                for value in fact_value:
-                    filter_string = 'filter[system_profile][%s][]=%s' % (
-                        fact_key, value)
-                    queries.append(filter_string)
-            else:
-                filter_string = 'filter[system_profile][%s][]=%s' % (
-                    fact_key, fact_value)
-                queries.append(filter_string)
-
+        queries = get_queries(module.params.items())
         api_request = '%s?%s' % (
             INVENTORY_API, '&'.join(queries))
         response = crc_request.get(api_request)
 
-        matched_systems = []
-        for system in response['results']:
-            for ip in system['ip_addresses']:
-                if ':' not in ip:
-                    if ip != '127.0.0.1':
-                        for index, section in enumerate(module.params['ipv4'].split('.')):
-                            min, max = parse_ip_pattern(section)
-                            ip_section = int(ip.split('.')[index])
-                            if ip_section < min or ip_section > max:
-                                break
-                            if index == 3:
-                                matched_systems.append(system)
-                                q.q(ip)
-        q.q(len(matched_systems))
+        matched_systems = get_matched_systems_by_ipv4(response['results'], module.params['ipv4'].split('.'))
 
         if module.params['host_type'] == 'edge':
-            edge_systems = []
-            for result in response['results']:
-                api_request = '%s/%s' % (
-                    EDGE_DEVICES_API, result['id'])
+            for system in matched_systems:
+                api_request = '%s/%s' % (EDGE_DEVICES_API, system['id'])
                 response = crc_request.get(api_request)
-                edge_systems.append(response['Device']['ID'])
+                system['edge_device_id'] = response['Device']['ID']
+                system['edge_image_id'] = response['Device']['ImageID']
+                system['edge_update_available'] = response['Device']['UpdateAvailable']
             module.exit_json(
-                msg='ran', edge_systems=edge_systems, inventory_systems=[])
+                msg='ran', changed=False, matched_systems=matched_systems)
         else:
-            module.exit_json(msg='ran', edge_systems=[],
-                             inventory_systems=matched_systems)
+            module.exit_json(
+                msg='ran', changed=False, matched_systems=matched_systems)
     except Exception as e:
-        module.fail_json(msg=to_text(e))
+        module.fail_json(msg=to_text(e), changed=False, matched_systems=[])
 
 
 if __name__ == "__main__":
