@@ -31,22 +31,22 @@ options:
     description:
       - The display name to filter by
     required: false
-        type: str
+    type: str
   hostname_or_id:
     description:
       - The hostname or id to filter by
     required: false
-        type: str
+    type: str
   fqdn:
     description:
       - The fully qualified domain name to filter by
     required: false
-        type: str
+    type: str
   insights_id:
     description:
       - The insights id to filter by
     required: false
-        type: str
+    type: str
   ipv4:
     description:
       - The ipv4 address to filter by
