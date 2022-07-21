@@ -31,4 +31,3 @@
         name: 'ansible-group-santiago'
         devices: '{{ filtered_systems["edge_systems"] }}'
         state: 'present'
-
