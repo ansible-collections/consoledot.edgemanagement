@@ -26,7 +26,7 @@ options:
       - List of devices to be added to a group
     required: true
     type: list
-    elements: str
+    elements: int
   state:
     description:
       - Should the devices exist or not
@@ -51,6 +51,19 @@ EXAMPLES = """
           - 21365
           - 31601
         state: 'present'
+
+- name: Remove devices to a group
+  hosts: CRC
+  gather_facts: false
+  tasks:
+    - name:
+      consoledot.edgemanagement.add_devices_to_group:
+        name: 'ansible-group-santiago'
+        devices:
+          - 21402
+          - 21365
+          - 31601
+        state: 'absent'
 """
 
 import json
@@ -62,13 +75,31 @@ from ansible.module_utils._text import to_text
 from ansible.module_utils.basic import AnsibleModule
 
 
+def find_group(name, group_data):
+    if group_data["data"] is None:
+        return []
+    return [
+        group
+        for group in group_data["data"]
+        if group["DeviceGroup"]["Name"] == name
+    ]
+
+
+def format_group_data(group_id, device_ids):
+    group_data = {"Devices": [], "ID": None}
+    for device_id in device_ids:
+        group_data["Devices"].append({"ID": device_id})
+    group_data['ID'] = group_id
+    return group_data
+
+
 def main():
 
     EDGE_API_GROUPS = "/api/edge/v1/device-groups"
 
     argspec = dict(
         name=dict(required=True, type="str"),
-        devices=dict(required=True, type="list", elements="str"),
+        devices=dict(required=True, type="list", elements="int"),
         state=dict(required=True, type="str", choices=["present", "absent"]),
     )
 
@@ -76,63 +107,60 @@ def main():
 
     crc_request = ConsoleDotRequest(module)
 
-    devices_group_data = {"Devices": [], "ID": None}
-
-    for device_id in module.params["devices"]:
-        devices_group_data["Devices"].append({"ID": device_id})
-
-    def find_group(group_data):
-        if group_data["data"] is None:
-            return []
-        return [
-            group
-            for group in group_data["data"]
-            if group["DeviceGroup"]["Name"] == module.params["name"]
-        ]
-
-    def get_groups():
-        return crc_request.get(f'{EDGE_API_GROUPS}?name={module.params["name"]}')
-
-    def post_devices_to_group():
-        return crc_request.post(
-            f"{EDGE_API_GROUPS}/{group_id}/devices", data=json.dumps(devices_group_data)
-        )
-
-    def remove_devices_from_group():
-        return crc_request.delete(
-            f"{EDGE_API_GROUPS}/{group_id}/devices", data=json.dumps(devices_group_data)
-        )
-
     try:
-        group_data = get_groups()
-        group_match = find_group(group_data)
+        group_data = crc_request.get('%s?name=%s' % (EDGE_API_GROUPS, module.params["name"]))
+        group_match = find_group(module.params['name'], group_data)
 
         if len(group_match) == 0:
             module.fail_json(msg="Group does not exist", changed=False)
 
         group_id = group_data["data"][0]["DeviceGroup"]["ID"]
-        devices_group_data["ID"] = group_id
+        device_group_data = format_group_data(group_id, module.params['devices'])
 
         if module.params["state"] == "present":
-            post_devices_to_group()
 
+            group_devices = group_data['data'][0]['DeviceGroup']['Devices']
+            if len(group_devices) > 0:
+                group_device_ids = []
+                for device in group_devices:
+                    group_device_ids.append(device['ID'])
+
+                new_device_ids = []
+                for device_id in module.params['devices']:
+                    if device_id not in group_device_ids:
+                        new_device_ids.append(device_id)
+
+                if len(new_device_ids) == 0:
+                    module.exit_json(
+                        msg='Nothing changed',
+                        changed=False,
+                        postdata=device_group_data,
+                    )
+
+                device_group_data = format_group_data(group_id, new_device_ids)
+
+            crc_request.post(
+                '%s/%s/devices' % (EDGE_API_GROUPS, group_id), data=json.dumps(device_group_data)
+            )
             module.exit_json(
-                msg=f'Added {len(module.params["devices"])} devices to {module.params["name"]} successfully',
+                msg='Added devices to %s successfully' % module.params['name'],
                 changed=True,
-                postdata=devices_group_data,
+                postdata=device_group_data,
             )
 
         if module.params["state"] == "absent":
-            remove_devices_from_group()
+            crc_request.delete(
+                '%s/%s/devices' % (EDGE_API_GROUPS, group_id), data=json.dumps(device_group_data)
+            )
 
             module.exit_json(
-                msg=f'Removed {len(module.params["devices"])} devices from {module.params["name"]} successfully',
+                msg='Removed devices to %s successfully' % module.params['name'],
                 changed=True,
-                postdata=devices_group_data,
+                postdata=device_group_data,
             )
 
     except Exception as e:
-        module.fail_json(msg=to_text(e), postdata=devices_group_data)
+        module.fail_json(msg=to_text(e), postdata=device_group_data)
 
 
 if __name__ == "__main__":
