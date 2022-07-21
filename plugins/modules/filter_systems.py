@@ -9,7 +9,7 @@ __metaclass__ = type
 
 DOCUMENTATION = """
 ---
-module: groups
+module: filter_systems
 short_description: Filter systems with facts
 description:
   - This module will filter systems with insights facts
