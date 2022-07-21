@@ -72,6 +72,7 @@ from ansible.module_utils.six.moves.urllib.parse import quote
 import re
 import fnmatch
 import json
+import ansible.module_utils.six.moves.urllib as url_lib
 
 
 def main():
@@ -97,7 +98,8 @@ def main():
         ]
 
     def get_groups(name: str = module.params['name']):
-        return crc_request.get(f'{EDGE_API_GROUPS}?name={name}')
+        valid_url_name = url_lib.parse.quote(name)
+        return crc_request.get(f'{EDGE_API_GROUPS}?name={valid_url_name}')
 
     def post_group(name):
         group_data = {

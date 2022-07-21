@@ -193,7 +193,7 @@ def main():
             }
         )
     for customRepository in module.params["custom_repositories"]:
-        response = find_custom_repo(customRepository["name"])
+        response = find_custom_repo(customRepository)
         if response["count"] > 0:
             postdata["thirdPartyRepositories"].append(
                 {
