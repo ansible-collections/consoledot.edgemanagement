@@ -5,13 +5,6 @@
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 from __future__ import absolute_import, division, print_function
-import json
-from ansible.module_utils.six.moves.urllib.parse import quote
-from ansible.module_utils._text import to_text
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
-    ConsoleDotRequest,
-)
 __metaclass__ = type
 
 DOCUMENTATION = """
@@ -128,6 +121,13 @@ EXAMPLES = """
 RETURN = """
 """
 
+from ansible.module_utils.six.moves.urllib.parse import quote
+from ansible.module_utils._text import to_text
+from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
+    ConsoleDotRequest,
+)
+
 
 def parse_ip_pattern(section):
     if section == '[]':
@@ -156,7 +156,7 @@ def get_queries(facts):
             filter_string = '%s=%s' % (
                 fact_key, fact_value)
             queries.append(filter_string)
-        elif type(fact_value) is list:
+        elif isinstance(fact_value, list):
             for value in fact_value:
                 filter_string = 'filter[system_profile][%s][]=%s' % (
                     fact_key, value)
@@ -203,7 +203,7 @@ def main():
 
     module = AnsibleModule(
         argument_spec=argspec, supports_check_mode=True,
-        mutually_exclusive=['display_name', 'fqdn', 'hostname_or_id', 'insights_id'])
+        mutually_exclusive=[['display_name', 'fqdn', 'hostname_or_id', 'insights_id']])
 
     crc_request = ConsoleDotRequest(module)
 

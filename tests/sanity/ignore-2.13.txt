@@ -11,3 +11,4 @@ plugins/modules/imagesets_info.py validate-modules:missing-gplv3-license # This 
 plugins/modules/images_info.py validate-modules:missing-gplv3-license # This collection is MIT Licensed
 plugins/modules/update_device.py validate-modules:missing-gplv3-license # This collection is MIT Licensed
 plugins/modules/update_image.py validate-modules:missing-gplv3-license # This collection is MIT Licensed
+plugins/modules/filter_systems.py validate-modules:missing-gplv3-license # This collection is MIT Licensed
