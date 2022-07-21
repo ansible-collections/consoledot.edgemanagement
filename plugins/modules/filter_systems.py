@@ -61,7 +61,7 @@ options:
     description:
       - The cores per socket to filter by
     required: false
-    type: str
+    type: int
   infrastructure_vendor:
     description:
       - The infrastructure vendor to filter by
@@ -71,12 +71,12 @@ options:
     description:
       - The number of cpus to filter by
     required: false
-    type: str
+    type: int
   number_of_sockets:
     description:
       - The number of sockets to filter by
     required: false
-    type: str
+    type: int
   os_kernel_version:
     description:
       - The os kernel version to filter by
