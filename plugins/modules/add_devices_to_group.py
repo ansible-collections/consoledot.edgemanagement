@@ -5,7 +5,6 @@
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 from __future__ import absolute_import, division, print_function
-
 __metaclass__ = type
 
 DOCUMENTATION = """
@@ -66,13 +65,13 @@ EXAMPLES = """
         state: 'absent'
 """
 
-import json
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils._text import to_text
+from ansible.module_utils.six.moves.urllib.parse import quote
 from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
 )
-from ansible.module_utils.six.moves.urllib.parse import quote
-from ansible.module_utils._text import to_text
-from ansible.module_utils.basic import AnsibleModule
+import json
 
 
 def find_group(name, group_data):
