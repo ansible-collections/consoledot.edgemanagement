@@ -89,17 +89,6 @@ def main():
 
     create_group_data = {"name": module.params["name"], "type": "static"}
 
-    def find_group(group_data, name: str = module.params['name']):
-        if group_data['data'] is None:
-            return []
-        return [
-            group for group in group_data['data'] if group['DeviceGroup']['Name'] == name
-        ]
-
-    def get_groups(name: str = module.params['name']):
-        valid_url_name = url_lib.parse.quote(name)
-        return crc_request.get(f'{EDGE_API_GROUPS}?name={valid_url_name}')
-
     def post_group(name):
         group_data = {
             'name': name,
@@ -133,10 +122,10 @@ def main():
         message = 'Nothing changed'
 
         # limit the results to iterate
-        group_data = get_groups(first_word)
+        group_data = crc_request.get_groups(first_word)
 
         for name in group_names:
-            group_match = find_group(group_data, name)
+            group_match = crc_request.find_group(group_data, name)
             if len(group_match) == 0:
                 post_group(name)
                 if (not has_been_changed):
@@ -150,10 +139,10 @@ def main():
         message = 'Nothing changed'
 
         # limit the results to iterate
-        group_data = get_groups(first_word)
+        group_data = crc_request.get_groups(first_word)
 
         for name in group_names:
-            group_match = find_group(group_data, name)
+            group_match = crc_request.find_group(group_data, name)
             if len(group_match) == 1:
                 remove_group(group_match[0])
                 if (not has_been_changed):
@@ -177,8 +166,8 @@ def main():
                 create_multiple_groups(first_word, group_names)
 
             # create single group
-            group_data = get_groups()
-            group_match = find_group(group_data)
+            group_data = crc_request.get_groups()
+            group_match = crc_request.find_group(group_data)
 
             if len(group_match) == 1:
                 module.exit_json(
@@ -214,7 +203,7 @@ def main():
                         break
 
                 # limit the results to iterate
-                group_data = get_groups(first_word)
+                group_data = crc_request.get_groups(first_word)
 
                 if group_data['data'] is None:
                     module.exit_json(msg='Nothing changed', changed=False)
@@ -229,9 +218,9 @@ def main():
                     msg='Removed groups successfully', changed=True)
 
             # remove single group
-            group_data = get_groups()
+            group_data = crc_request.get_groups()
 
-            group_match = find_group(group_data)
+            group_match = crc_request.find_group(group_data)
             if len(group_match) == 0:
                 module.exit_json(
                     msg="Nothing changed", changed=False, postdata=group_data
@@ -239,8 +228,8 @@ def main():
 
             response = remove_group(group_match[0])
 
-            group_data = get_groups()
-            group_match = find_group(group_data)
+            group_data = crc_request.get_groups()
+            group_match = crc_request.find_group(group_data)
 
             if len(group_match) == 0:
                 module.exit_json(
