@@ -126,6 +126,8 @@ from ansible.module_utils._text import to_text
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
+    INVENTORY_API_HOSTS,
+    EDGE_API_DEVICES,
 )
 
 
@@ -207,20 +209,17 @@ def main():
 
     crc_request = ConsoleDotRequest(module)
 
-    INVENTORY_API = '/api/inventory/v1/hosts'
-    EDGE_DEVICES_API = '/api/edge/v1/devices'
-
     try:
         queries = get_queries(module.params.items())
         api_request = '%s?%s' % (
-            INVENTORY_API, '&'.join(queries))
+            INVENTORY_API_HOSTS, '&'.join(queries))
         response = crc_request.get(api_request)
 
         matched_systems = get_matched_systems_by_ipv4(response['results'], module.params['ipv4'].split('.'))
 
         if module.params['host_type'] == 'edge':
             for system in matched_systems:
-                api_request = '%s/%s' % (EDGE_DEVICES_API, system['id'])
+                api_request = '%s/%s' % (EDGE_API_DEVICES, system['id'])
                 response = crc_request.get(api_request)
                 system['edge_device_id'] = response['Device']['ID']
                 system['edge_image_id'] = response['Device']['ImageID']

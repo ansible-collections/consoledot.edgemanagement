@@ -46,12 +46,19 @@ RETURN = """
 
 EXAMPLES = """
 - name: Upgrade a set of devices
-  consoledot.edgemanagement.imagesets_info:
+  consoledot.edgemanagement.update_device:
     name:
       - device1
       - device2
       - device3
-  register: imageinfo_output
+  register: deviceupdate_output
+
+- name: Upgrade two groups of devices
+  consoledot.edgemanagement.update_device:
+    group:
+      - group1
+      - group2
+  register: deviceupdate_output
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -75,11 +82,17 @@ def main():
     module = AnsibleModule(
         argument_spec=argspec,
         required_one_of=[["name", "group"]],
-        supports_check_mode=True)
+        supports_check_mode=False)
 
     crc_request = ConsoleDotRequest(module)
 
     module.fail_json(msg="ERROR: Module not implemented")
+
+    devices = []
+
+    if module.params['group']:
+        # get list of devices in group
+        devices.append()
 
     # FIXME - THIS MODULE IS NOT YET IMPLEMENTED
 

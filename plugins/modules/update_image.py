@@ -56,6 +56,8 @@ from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.parse import quote
 from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
+    EDGE_API_IMAGES,
+    EDGE_API_IMAGESETS,
 )
 
 import copy
@@ -80,9 +82,9 @@ def main():
     crc_request = ConsoleDotRequest(module)
 
     try:
-        old_image = crc_request.get(f"/api/edge/v1/images/{module.params['id']}")
+        old_image = crc_request.get(f"{EDGE_API_IMAGES}/{module.params['id']}")
         image_set = crc_request.get(
-            f"/api/edge/v1/image-sets/{old_image['ImageSetID']}"
+            f"{EDGE_API_IMAGESETS}/{old_image['ImageSetID']}"
         )
         #   {
         #     "name": "tpapaioa-20220204-1",
@@ -131,7 +133,7 @@ def main():
             )
 
         response = crc_request.post(
-            f"/api/edge/v1/images/{image_set['Data']['images'][0]['image']['ID']}/update",
+            f"{EDGE_API_IMAGES}/{image_set['Data']['images'][0]['image']['ID']}/update",
             data=json.dumps(postdata),
         )
         if response["Status"] not in [400, 403, 404]:

@@ -47,6 +47,7 @@ EXAMPLES = """
 
 from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
+    EDGE_API_THIRDPARTYREPO
 )
 from ansible.module_utils.six.moves.urllib.parse import quote, urlparse
 from ansible.module_utils._text import to_text
@@ -56,8 +57,6 @@ import json
 
 
 def main():
-
-    EDGE_API_REPOS = "/api/edge/v1/thirdpartyrepo"
 
     argspec = dict(
         name=dict(required=True, type="str"),
@@ -88,14 +87,14 @@ def main():
         ]
 
     def get_repos():
-        return crc_request.get(f'{EDGE_API_REPOS}?name={module.params["name"]}')
+        return crc_request.get(f'{EDGE_API_THIRDPARTYREPO}?name={module.params["name"]}')
 
     def post_repo():
-        return crc_request.post(f"{EDGE_API_REPOS}", data=json.dumps(create_repo_data))
+        return crc_request.post(f"{EDGE_API_THIRDPARTYREPO}", data=json.dumps(create_repo_data))
 
     def remove_repo(repo):
         repo_id = repo[0]["ID"]
-        return crc_request.delete(f"{EDGE_API_REPOS}/{repo_id}")
+        return crc_request.delete(f"{EDGE_API_THIRDPARTYREPO}/{repo_id}")
 
     try:
         if module.params["state"] == "present":

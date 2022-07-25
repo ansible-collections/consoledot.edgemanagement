@@ -65,6 +65,7 @@ EXAMPLES = """
 
 from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
+    EDGE_API_GROUPS,
 )
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_text
@@ -76,8 +77,6 @@ import ansible.module_utils.six.moves.urllib as url_lib
 
 
 def main():
-
-    EDGE_API_GROUPS = "/api/edge/v1/device-groups"
 
     argspec = dict(
         name=dict(required=True, type="str"),
