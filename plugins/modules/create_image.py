@@ -98,6 +98,8 @@ from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.parse import quote
 from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
+    EDGE_API_THIRDPARTYREPO,
+    EDGE_API_IMAGES,
 )
 
 import copy
@@ -180,7 +182,7 @@ def main():
     }
 
     def find_custom_repo(repo_name):
-        return crc_request.get(f"/api/edge/v1/thirdpartyrepo?name={quote(repo_name)}")
+        return crc_request.get(f"{EDGE_API_THIRDPARTYREPO}?name={quote(repo_name)}")
 
     with_installer = module.params["installer"]
     if with_installer:
@@ -215,7 +217,7 @@ def main():
         )
 
     try:
-        response = crc_request.post("/api/edge/v1/images/", data=json.dumps(postdata))
+        response = crc_request.post(EDGE_API_IMAGES, data=json.dumps(postdata))
         if response["Status"] not in [400, 403, 404]:
             module.exit_json(
                 msg="Successfully queued image build", image=response, postdata=postdata

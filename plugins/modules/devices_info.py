@@ -53,6 +53,7 @@ from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.parse import quote
 from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
+    EDGE_API_DEVICES,
 )
 
 import copy
@@ -75,7 +76,7 @@ def main():
     try:
         if module.params["client_id"]:
             devices = crc_request.get(
-                "/api/edge/v1/devices/{0}".format(module.params["client_id"])
+                f'{EDGE_API_DEVICES}/{module.params["client_id"]}'
             )
 
         else:
@@ -83,15 +84,15 @@ def main():
 
             if module.params["name"]:
                 query_strs.append(
-                    quote('hostname_or_id="{0}"'.format(to_text(module.params["name"])))
+                    quote(f'hostname_or_id="{to_text(module.params["name"])}"')
                 )
 
             if query_strs:
                 devices = crc_request.get(
-                    "/api/edge/v1/devices?{0}".format("&".join(query_strs))
+                    f"{EDGE_API_DEVICES}?{'&'.join(query_strs)}"
                 )
             else:
-                devices = crc_request.get("/api/edge/v1/devices/")
+                devices = crc_request.get(EDGE_API_DEVICES)
 
         if ("Status" in devices) and (devices["Status"] in [400, 403, 404]):
             module.fail_json(msg=devices)

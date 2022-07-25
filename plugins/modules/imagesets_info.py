@@ -56,6 +56,7 @@ from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.parse import quote
 from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
+    EDGE_API_IMAGESETS,
 )
 
 import copy
@@ -75,21 +76,21 @@ def main():
 
     if module.params["id"]:
         imagesets = crc_request.get(
-            "/api/edge/v1/image-sets/{0}".format(module.params["id"])
+            f'{EDGE_API_IMAGESETS}/{module.params["id"]}'
         )
 
     else:
         query_strs = []
 
         if module.params["name"]:
-            query_strs.append("name={0}".format(quote(to_text(module.params["name"]))))
+            query_strs.append(f'name={quote(to_text(module.params["name"]))}')
 
         if query_strs:
             imagesets = crc_request.get(
-                "/api/edge/v1/image-sets?{0}".format("&".join(query_strs))
+                f'{EDGE_API_IMAGESETS}?{"&".join(query_strs)}'
             )
         else:
-            imagesets = crc_request.get("/api/edge/v1/image-sets/")
+            imagesets = crc_request.get(EDGE_API_IMAGESETS)
 
     module.exit_json(imagesets=imagesets, changed=False)
 

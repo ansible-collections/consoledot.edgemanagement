@@ -6,14 +6,15 @@
 from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
-from ansible.module_utils.urls import CertificateError
-from ansible.module_utils.six.moves.urllib.parse import urlencode, quote_plus
-from ansible.module_utils.connection import ConnectionError
-from ansible.module_utils.six.moves.urllib.error import HTTPError
 from ansible.module_utils.connection import Connection
-from ansible.module_utils._text import to_text
 
-import json
+INVENTORY_API_HOSTS = '/api/inventory/v1/hosts'
+
+EDGE_API_DEVICES = '/api/edge/v1/devices'
+EDGE_API_GROUPS = '/api/edge/v1/device-groups'
+EDGE_API_IMAGES = '/api/edge/v1/images'
+EDGE_API_IMAGESETS = '/api/edge/v1/image-sets'
+EDGE_API_THIRDPARTYREPO = '/api/edge/v1/thirdpartyrepo'
 
 
 class ConsoleDotRequest(object):
