@@ -58,7 +58,7 @@ EXAMPLES = """
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils._text import to_text
+from ansible.module_utils._text import to_text, to_native
 
 from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
@@ -96,52 +96,61 @@ def main():
 
         return update_image[0]["image"]["ID"]
 
-    not_found_devices = []
-    hosts_postdata = {}
-    # Handle hosts
-    if module.params["name"]:
-        for name in module.params["name"]:
-            inventory_hosts_data = crc_request.get_inventory_hosts(name)
+    try:
+        not_found_devices = []
+        hosts_postdata = {}
+        # Handle hosts
+        if module.params["name"]:
+            for name in module.params["name"]:
+                inventory_hosts_data = crc_request.get_inventory_hosts(name)
 
-            if inventory_hosts_data["count"] > 1:
-                module.fail_json(
-                    f"Ambiguous selector provided for name: {name}. "
-                    "More than one device returned by inventory service."
-                )
-            if inventory_hosts_data["count"] == 0:
-                not_found_devices.append(name)
-                continue
+                if inventory_hosts_data["count"] > 1:
+                    module.fail_json(
+                        f"Ambiguous selector provided for name: {name}. "
+                        "More than one device returned by inventory service."
+                    )
+                if inventory_hosts_data["count"] == 0:
+                    not_found_devices.append(name)
+                    continue
 
-            booted_ostree = [
-                ostree["checksum"]
-                for ostree in inventory_hosts_data["results"][0]["system_profile"][
-                    "rpm_ostree_deployments"
+                booted_ostree = [
+                    ostree["checksum"]
+                    for ostree in inventory_hosts_data["results"][0]["system_profile"][
+                        "rpm_ostree_deployments"
+                    ]
+                    if ostree["booted"]
                 ]
-                if ostree["booted"]
-            ]
 
-            update_commit_id = get_update_commit_id(booted_ostree[0])
+                update_commit_id = get_update_commit_id(booted_ostree[0])
 
-            hosts_postdata.setdefault(update_commit_id, [])
-            hosts_postdata[update_commit_id].append(
-                inventory_hosts_data["results"][0]["id"]
+                hosts_postdata.setdefault(update_commit_id, [])
+                hosts_postdata[update_commit_id].append(
+                    inventory_hosts_data["results"][0]["id"]
+                )
+
+        # Handle groups
+        if module.params["group"]:
+            for gname in module.params["group"]:
+                group_data = crc_request.get_groups(name=gname)
+                matched_group = crc_request.find_group(group_data, name=gname)[0]
+                group_hosts = crc_request.get_group_hosts(
+                    matched_group["DeviceGroup"]["ID"]
+                )
+
+                for device in group_hosts:
+                    if device["AvailableHash"]:
+                        update_commit_id = get_update_commit_id(device["AvailableHash"])
+
+                        hosts_postdata.setdefault(update_commit_id, [])
+                        hosts_postdata[update_commit_id].append(device["UUID"])
+    except Exception as e:
+        module.fail_json(
+                msg=(
+                    "ERROR: Unknown error occurred, please file an issue "
+                    "ticket here: FIXME_NEED_LINK_TO_COLLECTION_REPO "
+                    f"and provide this output: {to_native(e)}"
+                )
             )
-
-    # Handle groups
-    if module.params["group"]:
-        for gname in module.params["group"]:
-            group_data = crc_request.get_groups(name=gname)
-            matched_group = crc_request.find_group(group_data, name=gname)[0]
-            group_hosts = crc_request.get_group_hosts(
-                matched_group["DeviceGroup"]["ID"]
-            )
-
-            for device in group_hosts:
-                if device["AvailableHash"]:
-                    update_commit_id = get_update_commit_id(device["AvailableHash"])
-
-                    hosts_postdata.setdefault(update_commit_id, [])
-                    hosts_postdata[update_commit_id].append(device["UUID"])
 
     hosts_responses = []
     try:
