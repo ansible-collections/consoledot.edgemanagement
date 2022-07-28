@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
+
 
 # (c) 2022, Adam Miller (admiller@redhat.com)
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
@@ -81,6 +81,7 @@ def main():
 
     crc_request = ConsoleDotRequest(module)
 
+    postdata = {}
     try:
         old_image = crc_request.get(f"{EDGE_API_IMAGES}/{module.params['id']}")
         image_set = crc_request.get(
@@ -104,21 +105,23 @@ def main():
         #       "sshkey": ""
         #     }
         #   }
-        postdata = {
-            "name": old_image["Name"],
-            "version": image_set["Data"]["image_set"]["Version"] + 1,
-            "description": f'RHEL for Edge Image Updated by Ansible Module - {old_image["Name"]}',
-            "distribution": old_image["Distribution"],
-            "packages": [],
-            "outputTypes": ["rhel-edge-commit"],
-            "commit": {
-                "arch": old_image["Commit"]["Arch"],
-            },
-            "installer": {
-                "username": "",
-                "sshkey": "",
-            },
-        }
+        postdata.update(
+            {
+                "Name": old_image["Name"],
+                "Version": image_set["Data"]["image_set"]["Version"] + 1,
+                "Description": f'RHEL for Edge Image Updated by Ansible Module - {old_image["Name"]}',
+                "Distribution": old_image["Distribution"],
+                "Packages": [],
+                "OutputTypes": ["rhel-edge-commit"],
+                "Commit": {
+                    "arch": old_image["Commit"]["Arch"],
+                },
+                "Installer": {
+                    "Username": "",
+                    "Sshkey": "",
+                },
+            }
+        )
 
         # FIXME - maybe deal with installer later
         # with_installer = module.params["installer"]
