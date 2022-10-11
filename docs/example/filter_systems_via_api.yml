@@ -5,9 +5,17 @@
   tasks:
     - name: Filter systems by insight facts
       consoledot.edgemanagement.filter_systems:
-        host_type: 'edge'
-        display_name: 'frontend'
-        ipv4: '192.168.122.[22:199]'
+        host_type: '{{ host_type }}'
+        display_name: '{{ display_name }}'
+        ipv4: '{{ ipv4 }}'
+        # os_release: '{{ os_release }}'
+        # cores_per_socket: '{{ cores_per_socket }}'
+        # infrastructure_vendor: '{{ kvm }}'
+        # number_of_cpus: '{{ number_of_cpus }}'
+        # number_of_sockets: '{{ number_of_sockets }}'
+        # os_kernel_version: '{{ os_kernel_version }}'
+        # enabled_services: '{{ enabled_services }}'
+        installed_services: '{{ installed_services }}'
         os_release: '8.5'
         cores_per_socket: 1
         infrastructure_vendor: 'kvm'
@@ -17,13 +25,9 @@
         enabled_services:
           - 'firewalld'
           - 'rhcd'
-        installed_services:
-          - 'rhsm'
-          - 'rhcd'
       register: filtered_systems
     - name: Save filtered systems
       set_fact:
-        # filter_systems: 'hello'
         filtered_systems: '{{ filtered_systems }}'
         cacheable: yes
 

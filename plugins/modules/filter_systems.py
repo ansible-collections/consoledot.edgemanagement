@@ -218,19 +218,23 @@ def main():
         matched_systems = get_matched_systems_by_ipv4(response['results'], module.params['ipv4'].split('.'))
 
         if module.params['host_type'] == 'edge':
+            edge_device_ids = []
             for system in matched_systems:
                 api_request = '%s/%s' % (EDGE_API_DEVICES, system['id'])
                 response = crc_request.get(api_request)
+                edge_device_ids.append(response['Device']['ID'])
+
                 system['edge_device_id'] = response['Device']['ID']
                 system['edge_image_id'] = response['Device']['ImageID']
                 system['edge_update_available'] = response['Device']['UpdateAvailable']
+
             module.exit_json(
-                msg='ran', changed=False, matched_systems=matched_systems)
+                msg='ran', changed=False, matched_systems=matched_systems, edge_device_ids=edge_device_ids)
         else:
             module.exit_json(
-                msg='ran', changed=False, matched_systems=matched_systems)
+                msg='ran', changed=False, matched_systems=matched_systems, edge_device_ids=[])
     except Exception as e:
-        module.fail_json(msg=to_text(e), changed=False, matched_systems=[])
+        module.fail_json(msg=to_text(e), changed=False, matched_systems=[], edge_device_ids=[])
 
 
 if __name__ == "__main__":
