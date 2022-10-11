@@ -17,22 +17,22 @@ description:
       on console.redhat.com Edge Management
 version_added: "0.1.0"
 options:
-    name:
+    ids:
         description:
-            - RHC Client ID of device to upgrade
+            - List of RHC Client IDs of device(s) to upgrade
         required: false
         type: list
         elements: str
     group:
         description:
-            - Group name to upgrade
+            - Group ids to upgrade
         required: false
         type: list
         elements: str
 author:
     - Adam Miller (@maxamillion)
 notes:
-    - Either name or group must be provided
+    - Either ids or group must be provided
 """
 
 
@@ -41,15 +41,15 @@ RETURN = """
 """
 
 EXAMPLES = """
--   name: Upgrade a set of devices
+-   ids: Upgrade a set of devices
     consoledot.edgemanagement.update_device:
-        name:
+        ids:
             - device1
             - device2
             - device3
     register: deviceupdate_output
 
--   name: Upgrade groups of devices
+-   ids: Upgrade groups of devices
     consoledot.edgemanagement.update_device:
         group:
             - group1
@@ -71,13 +71,13 @@ import json
 def main():
 
     argspec = dict(
-        name=dict(required=False, type="list", elements="str"),
+        ids=dict(required=False, type="list", elements="str"),
         group=dict(required=False, type="list", elements="str"),
     )
 
     module = AnsibleModule(
         argument_spec=argspec,
-        required_one_of=[["name", "group"]],
+        required_one_of=[["ids", "group"]],
         supports_check_mode=False,
     )
 
@@ -100,17 +100,17 @@ def main():
         not_found_devices = []
         hosts_postdata = {}
         # Handle hosts
-        if module.params["name"]:
-            for name in module.params["name"]:
-                inventory_hosts_data = crc_request.get_inventory_hosts(name)
+        if module.params["ids"]:
+            for ids in module.params["ids"]:
+                inventory_hosts_data = crc_request.get_inventory_hosts(ids)
 
                 if inventory_hosts_data["count"] > 1:
                     module.fail_json(
-                        f"Ambiguous selector provided for name: {name}. "
+                        f"Ambiguous selector provided for ids: {ids}. "
                         "More than one device returned by inventory service."
                     )
                 if inventory_hosts_data["count"] == 0:
-                    not_found_devices.append(name)
+                    not_found_devices.append(ids)
                     continue
 
                 booted_ostree = [
@@ -130,9 +130,9 @@ def main():
 
         # Handle groups
         if module.params["group"]:
-            for gname in module.params["group"]:
-                group_data = crc_request.get_groups(name=gname)
-                matched_group = crc_request.find_group(group_data, name=gname)[0]
+            for gids in module.params["group"]:
+                group_data = crc_request.get_groups(ids=gids)
+                matched_group = crc_request.find_group(group_data, ids=gids)[0]
                 group_hosts = crc_request.get_group_hosts(
                     matched_group["DeviceGroup"]["ID"]
                 )
