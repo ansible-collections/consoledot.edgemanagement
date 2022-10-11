@@ -145,12 +145,12 @@ def main():
                         hosts_postdata[update_commit_id].append(device["UUID"])
     except Exception as e:
         module.fail_json(
-                msg=(
-                    "ERROR: Unknown error occurred, please file an issue "
-                    "ticket here: FIXME_NEED_LINK_TO_COLLECTION_REPO "
-                    f"and provide this output: {to_native(e)}"
-                )
+            msg=(
+                "ERROR: Unknown error occurred, please file an issue "
+                "ticket here: FIXME_NEED_LINK_TO_COLLECTION_REPO "
+                f"and provide this output: {to_native(e)}"
             )
+        )
 
     hosts_responses = []
     try:
