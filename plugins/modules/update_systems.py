@@ -10,7 +10,7 @@ __metaclass__ = type
 
 DOCUMENTATION = """
 ---
-module: update_device
+module: update_systems
 short_description: Create a new RHEL for Edge Image on console.redhat.com
 description:
   - This module will build a RHEL for Edge Image on console.redhat.com
@@ -74,9 +74,8 @@ import json
 def main():
 
     argspec = dict(
-        name=dict(required=False, type="list", elements="str"),
-        group=dict(required=False, type="list", elements="str"),
-        imageset_id=dict(required=True, type="str"),
+        systems=dict(required=False, type="list", elements="str"),
+        groups=dict(required=False, type="list", elements="str"),
     )
 
     module = AnsibleModule(
@@ -86,28 +85,11 @@ def main():
 
     crc_request = ConsoleDotRequest(module)
 
-    module.fail_json(msg="ERROR: Module not implemented")
+    # used with filter systems module
+    if module.params['systems']:
 
-    devices = []
-
-    if module.params['group']:
-        # get list of devices in group
-        devices.append()
-
-    # FIXME - THIS MODULE IS NOT YET IMPLEMENTED
-
-
-#    try:
-#        response = crc_request.post("/api/edge/v1/updates/", data=json.dumps(postdata))
-#        if response["Status"] not in [400, 403, 404]:
-#            module.exit_json(
-#                msg="Successfully queued image build", image=response, postdata=postdata
-#            )
-#        else:
-#            module.fail_json(msg=response, postdata=postdata)
-#
-#    except Exception as e:
-#        module.fail_json(msg=to_text(e), postdata=postdata)
+    if module.params['ids']:
+    if module.params['groups']:
 
 
 if __name__ == "__main__":
