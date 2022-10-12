@@ -21,11 +21,6 @@
           - 'rhsm'
           - 'rhcd'
       register: filtered_systems
-    - name: Save filtered systems
-      set_fact:
-        # filter_systems: 'hello'
-        filtered_systems: '{{ filtered_systems }}'
-        cacheable: yes
 
     - debug: var=filtered_systems['edge_device_ids']
     # - debug: var=filtered_systems['matched_systems']
