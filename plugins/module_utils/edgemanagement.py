@@ -11,6 +11,7 @@ from ansible.module_utils.connection import Connection
 INVENTORY_API_HOSTS = '/api/inventory/v1/hosts'
 
 EDGE_API_DEVICES = '/api/edge/v1/devices'
+EDGE_API_DEVICESVIEW = '/api/edge/v1/devices/devicesview'
 EDGE_API_GROUPS = '/api/edge/v1/device-groups'
 EDGE_API_IMAGES = '/api/edge/v1/images'
 EDGE_API_IMAGESETS = '/api/edge/v1/image-sets'

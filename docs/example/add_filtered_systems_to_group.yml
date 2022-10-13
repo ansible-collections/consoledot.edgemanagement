@@ -7,6 +7,7 @@
       consoledot.edgemanagement.filter_systems:
         host_type: 'edge'
         display_name: 'frontend'
+        ipv4: '192.168.122.[22:199]'
         os_release: '8.5'
         cores_per_socket: 1
         infrastructure_vendor: 'kvm'
@@ -29,5 +30,5 @@
     - name: Add systems to the newly created group
       consoledot.edgemanagement.add_devices_to_group:
         name: 'ansible-group-santiago'
-        devices: '{{ filtered_systems["edge_systems"] }}'
+        devices: '{{ filtered_systems["edge_device_ids"] }}'
         state: 'present'

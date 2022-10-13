@@ -109,6 +109,9 @@ def main():
         group_data = crc_request.get('%s?name=%s' % (EDGE_API_GROUPS, module.params["name"]))
         group_match = find_group(module.params['name'], group_data)
 
+        if len(module.params['devices']) == 0:
+            module.fail_json(msg="No devices passed", changed=False)
+
         if len(group_match) == 0:
             module.fail_json(msg="Group does not exist", changed=False)
 
