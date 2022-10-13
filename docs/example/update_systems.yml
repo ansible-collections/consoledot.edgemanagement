@@ -7,6 +7,7 @@
       consoledot.edgemanagement.update_systems:
         uuids:
           - '160adfc2-00b1-48d5-b607-8b5ae7f4a861'
+          # - 'de1520ff-d77f-48a4-86b0-24db11b443d6'
       register: output
 
     # - name: Update systems to version 3 using ids

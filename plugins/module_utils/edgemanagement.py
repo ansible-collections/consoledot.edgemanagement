@@ -37,6 +37,11 @@ class ConsoleDotRequest(object):
 
         return response
 
+    def get_edge_system(self, system_id):
+        api_request = '%s?uuid=%s' % (EDGE_API_DEVICESVIEW, system_id)
+        response = self.get(api_request)
+        return response['data']['devices'][0]
+
     def get(self, path, **kwargs):
         return self._httpapi_error_handle("GET", path, **kwargs)
 

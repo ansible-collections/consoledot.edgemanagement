@@ -223,13 +223,12 @@ def main():
         if module.params['host_type'] == 'edge':
             edge_device_ids = []
             for system in matched_systems:
-                api_request = '%s?uuid=%s' % (EDGE_API_DEVICESVIEW, system['id'])
-                response = crc_request.get(api_request)
-                edge_system_data = response['data']['devices'][0]
+                edge_system_data = crc_request.get_edge_system(system['id'])
 
                 edge_device_ids.append(edge_system_data['DeviceID'])
 
                 system['edge_device_id'] = edge_system_data['DeviceID']
+                system['edge_image_name'] = edge_system_data['ImageName']
                 system['edge_image_id'] = edge_system_data['ImageID']
                 system['edge_image_set_id'] = edge_system_data['ImageSetID']
                 system['edge_update_available'] = edge_system_data['UpdateAvailable']

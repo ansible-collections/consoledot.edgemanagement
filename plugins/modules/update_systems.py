@@ -72,6 +72,22 @@ import q
 import copy
 import json
 
+def batch_edge_systems(systems: list, isUUIDS = True) -> dict:
+    if isUUIDS:
+        image_set_key = 'ImageSetID'
+        system_id_key = 'DeviceUUID'
+    else:
+        image_set_key = 'edge_image_set_id'
+        system_id_key = 'id'
+
+    image_set_ids = {}
+    for system in systems:
+        if system[image_set_key] in image_set_ids:
+            image_set_ids[system[image_set_key]].append(system[system_id_key])
+        else:
+            image_set_ids[system[image_set_key]] = [system[system_id_key]]
+    return image_set_ids
+
 
 def main():
 
@@ -88,33 +104,50 @@ def main():
 
     crc_request = ConsoleDotRequest(module)
 
+    def update_systems(systems):
+        for _, system_uuids in systems.items():
+            system_post_data = {
+                'CommitID': 0,
+                'DevicesUUID': system_uuids
+            }
+            try:
+                crc_request.post(
+                    EDGE_API_UPDATES, data=json.dumps(system_post_data)
+                )
+            except Exception as e:
+                module.fail_json(msg=e)
+
+    dispatched_updated = False
+
     # used with filter systems module
     if module.params['systems']:
-        system_ids = {
-            'CommitID': 0,
-            'DevicesUUID': []
-        }
+        systems_with_updates = []
         for system in module.params['systems']:
-            system_ids['DevicesUUID'].append(system['insights_id'])
-        q.q(system_ids)
-        # response = crc_request.post(
-        #     EDGE_API_UPDATES, data=json.dumps(system_ids)
-        # )
-        # q.q(response)
+            if system['edge_update_available'] and \
+            system['edge_system_status'] == 'RUNNING':
+                systems_with_updates.append(system)
+
+        batched_systems = batch_edge_systems(systems_with_updates, isUUIDS=False)
+        update_systems(batched_systems)
+        dispatched_updated = True
 
     if module.params['uuids']:
-        system_ids = {
-            'CommitID': 0,
-            'DevicesUUID': module.params['uuids']
-        }
-        q.q(module.params['uuids'])
-        response = crc_request.post(
-            EDGE_API_UPDATES, data=json.dumps(system_ids)
-        )
-        q.q(response)
+        systems_with_updates = []
+        for uuid in module.params['uuids']:
+            edge_system_data = crc_request.get_edge_system(uuid)
+
+            if edge_system_data['UpdateAvailable'] and \
+            edge_system_data['Status'] == 'RUNNING':
+                systems_with_updates.append(edge_system_data)
+
+        batched_systems = batch_edge_systems(systems_with_updates)
+        update_systems(batched_systems)
+        dispatched_updated = True
 
     if module.params['groups']:
         pass
+
+    module.exit_json(msg='ran succesfully', changed=dispatched_updated)
 
 if __name__ == "__main__":
     main()
