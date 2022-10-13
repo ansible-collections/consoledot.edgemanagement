@@ -127,7 +127,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
     INVENTORY_API_HOSTS,
-    EDGE_API_DEVICES,
+    EDGE_API_DEVICESVIEW
 )
 
 
@@ -223,14 +223,19 @@ def main():
         if module.params['host_type'] == 'edge':
             edge_device_ids = []
             for system in matched_systems:
-                api_request = '%s/%s' % (EDGE_API_DEVICES, system['id'])
+                api_request = '%s?uuid=%s' % (EDGE_API_DEVICESVIEW, system['id'])
                 response = crc_request.get(api_request)
+                edge_system_data = response['data']['devices'][0]
 
-                edge_device_ids.append(response['Device']['ID'])
+                edge_device_ids.append(edge_system_data['DeviceID'])
 
-                system['edge_device_id'] = response['Device']['ID']
-                system['edge_image_id'] = response['Device']['ImageID']
-                system['edge_update_available'] = response['Device']['UpdateAvailable']
+                system['edge_device_id'] = edge_system_data['DeviceID']
+                system['edge_image_id'] = edge_system_data['ImageID']
+                system['edge_image_set_id'] = edge_system_data['ImageSetID']
+                system['edge_update_available'] = edge_system_data['UpdateAvailable']
+                system['edge_system_status'] = edge_system_data['Status']
+                system['edge_update_status'] = edge_system_data['DispatcherStatus']
+                system['edge_update_status_reason'] = edge_system_data['DispatcherReason']
 
             module.exit_json(
                 msg='ran', changed=False, matched_systems=matched_systems, edge_device_ids=edge_device_ids)
