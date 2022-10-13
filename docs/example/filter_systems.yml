@@ -6,6 +6,7 @@
     - name: Filter systems by insight facts
       consoledot.edgemanagement.filter_systems:
         host_type: 'edge'
+        display_name: 'frontend'
         ipv4: '192.168.122.[22:199]'
         os_release: '8.5'
         cores_per_socket: 1
@@ -21,4 +22,5 @@
           - 'rhcd'
       register: filtered_systems
 
-    - debug: var=filtered_systems['matched_systems']
+    - debug: var=filtered_systems['edge_device_ids']
+    # - debug: var=filtered_systems['matched_systems']
