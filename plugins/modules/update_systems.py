@@ -66,7 +66,9 @@ from ansible.module_utils._text import to_text
 
 from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
+    EDGE_API_UPDATES
 )
+import q
 import copy
 import json
 
@@ -74,23 +76,45 @@ import json
 def main():
 
     argspec = dict(
-        systems=dict(required=False, type="list", elements="str"),
+        systems=dict(required=False, type="list", elements="dict"),
+        ids=dict(required=False, type="list", elements="str"),
         groups=dict(required=False, type="list", elements="str"),
+        version=dict(required=False, type="int"),
     )
 
     module = AnsibleModule(
         argument_spec=argspec,
-        required_one_of=[["name", "group"]],
-        supports_check_mode=False)
+        )
 
     crc_request = ConsoleDotRequest(module)
 
     # used with filter systems module
     if module.params['systems']:
+        system_ids = {
+            'CommitID': 0,
+            'DevicesUUID': []
+        }
+        for system in module.params['systems']:
+            system_ids['DevicesUUID'].append(system['insights_id'])
+        q.q(system_ids)
+        # response = crc_request.post(
+        #     EDGE_API_UPDATES, data=json.dumps(system_ids)
+        # )
+        # q.q(response)
 
     if module.params['ids']:
-    if module.params['groups']:
+        system_ids = {
+            'CommitID': 0,
+            'DevicesUUID': module.params['ids']
+        }
+        q.q(module.params['ids'])
+        response = crc_request.post(
+            EDGE_API_UPDATES, data=json.dumps(system_ids)
+        )
+        q.q(response)
 
+    if module.params['groups']:
+        pass
 
 if __name__ == "__main__":
     main()

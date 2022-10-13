@@ -15,6 +15,7 @@ EDGE_API_GROUPS = '/api/edge/v1/device-groups'
 EDGE_API_IMAGES = '/api/edge/v1/images'
 EDGE_API_IMAGESETS = '/api/edge/v1/image-sets'
 EDGE_API_THIRDPARTYREPO = '/api/edge/v1/thirdpartyrepo'
+EDGE_API_UPDATES = "/api/edge/v1/updates"
 
 
 class ConsoleDotRequest(object):
