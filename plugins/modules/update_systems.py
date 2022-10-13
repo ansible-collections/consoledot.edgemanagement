@@ -77,7 +77,7 @@ def main():
 
     argspec = dict(
         systems=dict(required=False, type="list", elements="dict"),
-        ids=dict(required=False, type="list", elements="str"),
+        uuids=dict(required=False, type="list", elements="str"),
         groups=dict(required=False, type="list", elements="str"),
         version=dict(required=False, type="int"),
     )
@@ -102,12 +102,12 @@ def main():
         # )
         # q.q(response)
 
-    if module.params['ids']:
+    if module.params['uuids']:
         system_ids = {
             'CommitID': 0,
-            'DevicesUUID': module.params['ids']
+            'DevicesUUID': module.params['uuids']
         }
-        q.q(module.params['ids'])
+        q.q(module.params['uuids'])
         response = crc_request.post(
             EDGE_API_UPDATES, data=json.dumps(system_ids)
         )
