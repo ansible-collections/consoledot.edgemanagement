@@ -6,7 +6,8 @@
     - name: Update systems to latest version using ids
       consoledot.edgemanagement.update_systems:
         uuids:
-          - '160adfc2-00b1-48d5-b607-8b5ae7f4a861'
+          - '160adfc2-00b1-48d5-b607-8b5ae7f4a861' # frontendV7
+        version: 7
           # - 'de1520ff-d77f-48a4-86b0-24db11b443d6'
       register: output
 

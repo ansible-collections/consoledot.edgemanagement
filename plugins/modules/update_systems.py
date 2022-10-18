@@ -66,7 +66,8 @@ from ansible.module_utils._text import to_text
 
 from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemanagement import (
     ConsoleDotRequest,
-    EDGE_API_UPDATES
+    EDGE_API_UPDATES,
+    EDGE_API_IMAGESETS
 )
 import q
 import copy
@@ -104,13 +105,14 @@ def main():
 
     crc_request = ConsoleDotRequest(module)
 
-    def update_systems(systems):
+    def update_systems(systems, commit_id = 0):
         for _, system_uuids in systems.items():
             system_post_data = {
-                'CommitID': 0,
+                'CommitID': commit_id,
                 'DevicesUUID': system_uuids
             }
             try:
+                q.q(system_post_data)
                 crc_request.post(
                     EDGE_API_UPDATES, data=json.dumps(system_post_data)
                 )
@@ -121,15 +123,45 @@ def main():
 
     # used with filter systems module
     if module.params['systems']:
-        systems_with_updates = []
-        for system in module.params['systems']:
-            if system['edge_update_available'] and \
-            system['edge_system_status'] == 'RUNNING':
-                systems_with_updates.append(system)
+        if module.params['version']:
+            imageset_id = module.params['systems'][0]['edge_image_set_id']
+            for system in module.params['systems']:
+                if system['edge_image_set_id'] != imageset_id:
+                    module.exit_json(msg='systems have multiple image sets, \
+                                     systems need to have the same image set')
 
-        batched_systems = batch_edge_systems(systems_with_updates, isUUIDS=False)
-        update_systems(batched_systems)
-        dispatched_updated = True
+            # FIXME - properly handle pagination
+            edge_api_image_set_versions = EDGE_API_IMAGESETS + '/view/%s/versions' % imageset_id
+            response = crc_request.get(edge_api_image_set_versions)
+            if module.params['version'] > response['count']:
+                module.exit_json(msg='version provided not found')
+
+            version_image_id = 0
+            for version in response['data']:
+                if version['Version'] == module.params['version']:
+                    version_image_id = version['ID']
+
+            edge_api_image_set = EDGE_API_IMAGESETS + '/view/%s/versions/%s' \
+                % (imageset_id, version_image_id)
+            response = crc_request.get(edge_api_image_set)
+            image_commit_id = response['ImageDetails']['image']['CommitID']
+
+            systems = []
+            for system in module.params['systems']:
+                systems.append(system['id'])
+
+            update_systems({imageset_id: systems}, image_commit_id)
+            dispatched_updated = True
+        else:
+            systems_with_updates = []
+            for system in module.params['systems']:
+                if system['edge_update_available'] and \
+                system['edge_system_status'] == 'RUNNING':
+                    systems_with_updates.append(system)
+
+            batched_systems = batch_edge_systems(systems_with_updates, isUUIDS=False)
+            update_systems(batched_systems)
+            dispatched_updated = True
 
     if module.params['uuids']:
         systems_with_updates = []
