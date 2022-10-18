@@ -11,54 +11,80 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: update_systems
-short_description: Create a new RHEL for Edge Image on console.redhat.com
+short_description: Update systems
 description:
-  - This module will build a RHEL for Edge Image on console.redhat.com
+  - This module will update systems to the latest update or to a specific version
 version_added: "0.1.0"
 options:
-  name:
+  systems:
     description:
-      - RHC Client ID of device to upgrade
+      - Systems that are passed from the filter systems module to be updated.
+    required: false
+    type: list
+    elements: dict
+  uuids:
+    description:
+      - System UUIDs to be updated
     required: false
     type: list
     elements: str
-  group:
+  groups:
     description:
-      - Group name to upgrade
+      - Group to be updated
     required: false
     type: list
     elements: str
-  imageset_id:
+  version:
     description:
-      - Id of ImageSet to use for the device upgrade
-    required: true
-    type: str
+      - Image version the system(s) will be set to.
+    required: false
+    type: int
 author:
-  - Adam Miller (@maxamillion)
+  - Chris Santiago (@resoluteCoder)
 notes:
-  - Either C(name) or C(group) must be provided
-"""
-
-
-# FIXME - provide correct example here
-RETURN = """
+  - systems will only work if the input is supplied by the filter systems module
 """
 
 EXAMPLES = """
-- name: Upgrade a set of devices
-  consoledot.edgemanagement.update_device:
-    name:
-      - device1
-      - device2
-      - device3
-  register: deviceupdate_output
+- name: Update systems
+  hosts: CRC
+  gather_facts: false
+  tasks:
+    - name: Update systems to latest version using ids
+      consoledot.edgemanagement.update_systems:
+        uuids:
+          - '160adfc2-00b1-48d5-b607-8b5ae7f4a861'
+        version: 7
+      register: output
 
-- name: Upgrade two groups of devices
-  consoledot.edgemanagement.update_device:
-    group:
-      - group1
-      - group2
-  register: deviceupdate_output
+- name: Filter systems
+  hosts: CRC
+  gather_facts: false
+  tasks:
+    - name: Filter systems by insight facts
+      consoledot.edgemanagement.filter_systems:
+        host_type: 'edge'
+        ipv4: '192.168.122.[22:199]'
+        display_name: 'frontendv8'
+        os_release: '8.5'
+        cores_per_socket: 1
+        infrastructure_vendor: 'kvm'
+        number_of_cpus: 1
+        number_of_sockets: 1
+        os_kernel_version: '4.18.0'
+        enabled_services:
+          - 'firewalld'
+          - 'rhcd'
+        installed_services:
+          - 'rhsm'
+          - 'rhcd'
+      register: filtered_systems
+
+    - name: Update systems to latest version using ids
+      consoledot.edgemanagement.update_systems:
+        systems: '{{ filtered_systems["matched_systems"] }}'
+        version: 7
+      register: output
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -69,11 +95,10 @@ from ansible_collections.consoledot.edgemanagement.plugins.module_utils.edgemana
     EDGE_API_UPDATES,
     EDGE_API_IMAGESETS
 )
-import q
-import copy
 import json
 
-def batch_edge_systems(systems: list, isUUIDS = True) -> dict:
+
+def batch_edge_systems(systems: list, isUUIDS=True) -> dict:
     if isUUIDS:
         image_set_key = 'ImageSetID'
         system_id_key = 'DeviceUUID'
@@ -101,12 +126,12 @@ def main():
 
     module = AnsibleModule(
         argument_spec=argspec,
-        )
+    )
 
     crc_request = ConsoleDotRequest(module)
 
-    def update_systems(systems, commit_id = 0):
-        for _, system_uuids in systems.items():
+    def update_systems(systems, commit_id=0):
+        for image_set_id, system_uuids in systems.items():
             system_post_data = {
                 'CommitID': commit_id,
                 'DevicesUUID': system_uuids
@@ -154,8 +179,7 @@ def main():
         else:
             systems_with_updates = []
             for system in module.params['systems']:
-                if system['edge_update_available'] and \
-                system['edge_system_status'] == 'RUNNING':
+                if system['edge_update_available'] and system['edge_system_status'] == 'RUNNING':
                     systems_with_updates.append(system)
 
             batched_systems = batch_edge_systems(systems_with_updates, isUUIDS=False)
@@ -167,8 +191,7 @@ def main():
         for uuid in module.params['uuids']:
             edge_system_data = crc_request.get_edge_system(uuid)
 
-            if edge_system_data['UpdateAvailable'] and \
-            edge_system_data['Status'] == 'RUNNING':
+            if edge_system_data['UpdateAvailable'] and edge_system_data['Status'] == 'RUNNING':
                 systems_with_updates.append(edge_system_data)
 
         batched_systems = batch_edge_systems(systems_with_updates)
@@ -189,8 +212,8 @@ def main():
                     # key is dummy image set id to match function param
                     update_systems({0: [system['UUID']]})
 
-
     module.exit_json(msg='ran succesfully', changed=dispatched_updated)
+
 
 if __name__ == "__main__":
     main()
