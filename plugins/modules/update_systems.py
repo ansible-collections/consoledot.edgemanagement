@@ -112,7 +112,6 @@ def main():
                 'DevicesUUID': system_uuids
             }
             try:
-                q.q(system_post_data)
                 crc_request.post(
                     EDGE_API_UPDATES, data=json.dumps(system_post_data)
                 )
@@ -177,7 +176,19 @@ def main():
         dispatched_updated = True
 
     if module.params['groups']:
-        pass
+        for group_name in module.params['groups']:
+            response = crc_request.get_groups(group_name)
+            group_data = crc_request.find_group(response, group_name)
+
+            if len(group_data) == 0:
+                module.fail_json(msg='%s cannot be found' % group_name)
+
+            edge_systems = group_data[0]['DeviceGroup']['Devices']
+            for system in edge_systems:
+                if system['UpdateAvailable']:
+                    # key is dummy image set id to match function param
+                    update_systems({0: [system['UUID']]})
+
 
     module.exit_json(msg='ran succesfully', changed=dispatched_updated)
 

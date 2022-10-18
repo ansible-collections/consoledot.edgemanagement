@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 from ansible.module_utils.connection import Connection
+import ansible.module_utils.six.moves.urllib as url_lib
 
 INVENTORY_API_HOSTS = '/api/inventory/v1/hosts'
 
@@ -36,6 +37,17 @@ class ConsoleDotRequest(object):
             self.module.fail_json(msg=f"[{method}] Error-{code}: {response}")
 
         return response
+
+    def get_groups(self, name: str = ''):
+        valid_url_name = url_lib.parse.quote(name)
+        return self.get(f'{EDGE_API_GROUPS}?name={valid_url_name}')
+
+    def find_group(self, group_data, name: str = ''):
+        if group_data['data'] is None:
+            return []
+        return [
+            group for group in group_data['data'] if group['DeviceGroup']['Name'] == name
+        ]
 
     def get_edge_system(self, system_id):
         api_request = '%s?uuid=%s' % (EDGE_API_DEVICESVIEW, system_id)

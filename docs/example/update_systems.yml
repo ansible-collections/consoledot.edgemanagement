@@ -3,13 +3,13 @@
   hosts: CRC
   gather_facts: false
   tasks:
-    - name: Update systems to latest version using ids
-      consoledot.edgemanagement.update_systems:
-        uuids:
-          - '160adfc2-00b1-48d5-b607-8b5ae7f4a861' # frontendV7
-        version: 7
-          # - 'de1520ff-d77f-48a4-86b0-24db11b443d6'
-      register: output
+    # - name: Update systems to latest version using ids
+      # consoledot.edgemanagement.update_systems:
+      #   uuids:
+      #     - '160adfc2-00b1-48d5-b607-8b5ae7f4a861' # frontendV7
+      #   version: 7
+      #     # - 'de1520ff-d77f-48a4-86b0-24db11b443d6'
+      # register: output
 
     # - name: Update systems to version 3 using ids
     #   consoledot.edgemanagement.update_device:
@@ -18,10 +18,10 @@
     #     version: 3
     #   register: deviceupdate_output
 
-    # - name: Update systems to latest version within a group
-    #   consoledot.edgemanagement.update_device:
-    #     groups:
-    #       - 'group-needs-update'
-    #   register: deviceupdate_output
+    - name: Update systems to latest version within a group
+      consoledot.edgemanagement.update_systems:
+        groups:
+          - 'updated-with-ansible'
+      register: output
 
     # - debug: var=deviceupdate_output
