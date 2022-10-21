@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# (c) 2022, Adam Miller (admiller@redhat.com)
+# (c) 2022, Chris Santiago (chsantia@redhat.com)
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 from __future__ import absolute_import, division, print_function
