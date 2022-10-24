@@ -221,6 +221,5 @@ def main():
         module.fail_json(msg=to_text(e))
 
 
-
 if __name__ == "__main__":
     main()
