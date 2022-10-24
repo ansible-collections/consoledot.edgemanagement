@@ -18,6 +18,7 @@ version_added: "0.1.0"
 options:
   systems:
     description:
+      - Systems that are passed from the C(consoledote.edgemanagement.filter_systems) module to be updated.
       - Systems that are passed from the filter systems module to be updated.
     required: false
     type: list
@@ -42,7 +43,7 @@ options:
 author:
   - Chris Santiago (@resoluteCoder)
 notes:
-  - systems will only work if the input is supplied by the filter systems module
+  - systems will only work if the input is supplied by the C(consoledote.edgemanagement.filter_systems) module
 """
 
 EXAMPLES = """
@@ -145,74 +146,80 @@ def main():
 
     dispatched_updated = False
 
-    # used with filter systems module
-    if module.params['systems']:
-        if module.params['version']:
-            imageset_id = module.params['systems'][0]['edge_image_set_id']
-            for system in module.params['systems']:
-                if system['edge_image_set_id'] != imageset_id:
-                    module.exit_json(msg='systems have multiple image sets, \
-                                     systems need to have the same image set')
+    try:
+        # used with filter systems module
+        if module.params['systems']:
+            if module.params['version']:
+                imageset_id = module.params['systems'][0]['edge_image_set_id']
+                for system in module.params['systems']:
+                    if system['edge_image_set_id'] != imageset_id:
+                        module.exit_json(msg='systems have multiple image sets, \
+                                         systems need to have the same image set')
 
-            # FIXME - properly handle pagination
-            edge_api_image_set_versions = EDGE_API_IMAGESETS + '/view/%s/versions' % imageset_id
-            response = crc_request.get(edge_api_image_set_versions)
-            if module.params['version'] > response['count']:
-                module.exit_json(msg='version provided not found')
+                # FIXME - properly handle pagination
+                edge_api_image_set_versions = EDGE_API_IMAGESETS + '/view/%s/versions' % imageset_id
+                response = crc_request.get(edge_api_image_set_versions)
+                if module.params['version'] > response['count']:
+                    module.exit_json(msg='version provided not found')
 
-            version_image_id = 0
-            for version in response['data']:
-                if version['Version'] == module.params['version']:
-                    version_image_id = version['ID']
+                version_image_id = 0
 
-            edge_api_image_set = EDGE_API_IMAGESETS + '/view/%s/versions/%s' \
-                % (imageset_id, version_image_id)
-            response = crc_request.get(edge_api_image_set)
-            image_commit_id = response['ImageDetails']['image']['CommitID']
+                for version in response['data']:
+                    if version['Version'] == module.params['version']:
+                        version_image_id = version['ID']
 
-            systems = []
-            for system in module.params['systems']:
-                systems.append(system['id'])
+                edge_api_image_set = EDGE_API_IMAGESETS + '/view/%s/versions/%s' \
+                    % (imageset_id, version_image_id)
+                response = crc_request.get(edge_api_image_set)
+                image_commit_id = response['ImageDetails']['image']['CommitID']
 
-            update_systems({imageset_id: systems}, image_commit_id)
-            dispatched_updated = True
-        else:
+                systems = []
+                for system in module.params['systems']:
+                    systems.append(system['id'])
+
+                update_systems({imageset_id: systems}, image_commit_id)
+                dispatched_updated = True
+            else:
+                systems_with_updates = []
+                for system in module.params['systems']:
+                    if system['edge_update_available'] and system['edge_system_status'] == 'RUNNING':
+                        systems_with_updates.append(system)
+
+                batched_systems = batch_edge_systems(systems_with_updates, isUUIDS=False)
+                update_systems(batched_systems)
+                dispatched_updated = True
+
+        if module.params['uuids']:
             systems_with_updates = []
-            for system in module.params['systems']:
-                if system['edge_update_available'] and system['edge_system_status'] == 'RUNNING':
-                    systems_with_updates.append(system)
+            for uuid in module.params['uuids']:
+                edge_system_data = crc_request.get_edge_system(uuid)
 
-            batched_systems = batch_edge_systems(systems_with_updates, isUUIDS=False)
+                if edge_system_data['UpdateAvailable'] and edge_system_data['Status'] == 'RUNNING':
+                    systems_with_updates.append(edge_system_data)
+
+            batched_systems = batch_edge_systems(systems_with_updates)
             update_systems(batched_systems)
             dispatched_updated = True
 
-    if module.params['uuids']:
-        systems_with_updates = []
-        for uuid in module.params['uuids']:
-            edge_system_data = crc_request.get_edge_system(uuid)
+        if module.params['groups']:
+            for group_name in module.params['groups']:
+                response = crc_request.get_groups(group_name)
+                group_data = crc_request.find_group(response, group_name)
 
-            if edge_system_data['UpdateAvailable'] and edge_system_data['Status'] == 'RUNNING':
-                systems_with_updates.append(edge_system_data)
+                if len(group_data) == 0:
+                    module.fail_json(msg='%s cannot be found' % group_name)
 
-        batched_systems = batch_edge_systems(systems_with_updates)
-        update_systems(batched_systems)
-        dispatched_updated = True
+                edge_systems = group_data[0]['DeviceGroup']['Devices']
+                for system in edge_systems:
+                    if system['UpdateAvailable']:
+                        # key is dummy image set id to match function param
+                        update_systems({0: [system['UUID']]})
 
-    if module.params['groups']:
-        for group_name in module.params['groups']:
-            response = crc_request.get_groups(group_name)
-            group_data = crc_request.find_group(response, group_name)
+        module.exit_json(msg='ran succesfully', changed=dispatched_updated)
 
-            if len(group_data) == 0:
-                module.fail_json(msg='%s cannot be found' % group_name)
+    except Exception as e:
+        module.fail_json(msg=to_text(e))
 
-            edge_systems = group_data[0]['DeviceGroup']['Devices']
-            for system in edge_systems:
-                if system['UpdateAvailable']:
-                    # key is dummy image set id to match function param
-                    update_systems({0: [system['UUID']]})
-
-    module.exit_json(msg='ran succesfully', changed=dispatched_updated)
 
 
 if __name__ == "__main__":
