@@ -1,0 +1,17 @@
+---
+# defaults file for filter_update_systems
+host_type: 'edge'
+system_ipv4: '192.168.122.51'
+display_name: 'edge1'
+os_release: '9.0'
+cores_per_socket: 1
+infrastructure_vendor: 'kvm'
+number_of_cpus: 1
+number_of_sockets: 1
+os_kernel_version: '5.14.0'
+enabled_services:
+  - 'firewalld'
+  - 'rhcd'
+installed_services:
+  - 'rhsm'
+  - 'rhcd'

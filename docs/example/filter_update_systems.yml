@@ -3,27 +3,6 @@
   hosts: CRC
   gather_facts: false
   tasks:
-    - name: Filter systems by insight facts
-      consoledot.edgemanagement.filter_systems:
-        host_type: 'edge'
-        ipv4: '192.168.122.[22:199]'
-        display_name: 'frontendv8'
-        os_release: '8.5'
-        cores_per_socket: 1
-        infrastructure_vendor: 'kvm'
-        number_of_cpus: 1
-        number_of_sockets: 1
-        os_kernel_version: '4.18.0'
-        enabled_services:
-          - 'firewalld'
-          - 'rhcd'
-        installed_services:
-          - 'rhsm'
-          - 'rhcd'
-      register: filtered_systems
-
-    - name: Update systems to latest version using ids
-      consoledot.edgemanagement.update_systems:
-        systems: '{{ filtered_systems["matched_systems"] }}'
-        version: 7
-      register: output
+    - name: run the role
+      ansible.builtin.import_role:
+        name: consoledot.edgemanagement.filter_update_systems

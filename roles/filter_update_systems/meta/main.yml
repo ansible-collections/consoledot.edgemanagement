@@ -1,0 +1,5 @@
+galaxy_info:
+  standalone: false
+  description: >
+    Filter update systems
+dependencies: []
