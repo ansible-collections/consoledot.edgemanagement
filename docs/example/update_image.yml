@@ -1,0 +1,27 @@
+---
+- name: Update image
+  hosts: CRC
+  gather_facts: false
+  tasks:
+    - name: Update frontend image
+      consoledot.edgemanagement.update_image:
+        name: 'frontendv5'
+        output_type: 'installer'
+        username: 'user1'
+        sshkey: 'ssh-rsa test123'
+        packages:
+          - "vim-enhanced"
+          - "sssd"
+          - "dnsmasq"
+          - "buildah"
+          - "containernetworking-plugins"
+          - "python3-psutil"
+          - "toolbox"
+          - "audit"
+          - "cronie"
+          - "crypto-policies"
+          - "crypto-policies-scripts"
+          - "curl"
+      register: output
+
+    - debug: var=output
