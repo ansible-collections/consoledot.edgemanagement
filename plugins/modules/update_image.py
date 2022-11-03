@@ -27,6 +27,7 @@ options:
     required: false
     type: list
     elements: str
+    default: []
   output_type:
     description:
       - Type of image that will be built.
