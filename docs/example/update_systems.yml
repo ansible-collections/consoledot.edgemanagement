@@ -1,0 +1,20 @@
+---
+- name: Update systems
+  hosts: CRC
+  gather_facts: false
+  vars:
+    system_uuids:
+      - '160adfc2-00b1-48d5-b607-8b5ae7f4a861'
+    system_groups:
+      - 'updated-with-ansible'
+  tasks:
+    - name: Update systems to latest version using ids
+      consoledot.edgemanagement.update_systems:
+        uuids: "{{ system_uuids }}"
+        version: 7
+      register: output
+
+    - name: Update systems to latest version within a group
+      consoledot.edgemanagement.update_systems:
+        system_groups: "{{ system_groups }}"
+      register: output

@@ -1,0 +1,25 @@
+---
+# tasks file for filter_update_systems
+- name: Filter systems by insight facts
+  consoledot.edgemanagement.filter_systems:
+    host_type: "{{ host_type }}"
+    ipv4: "{{ system_ipv4 }}"
+    display_name: "{{ display_name }}"
+    os_release: "{{ os_release }}"
+    cores_per_socket: "{{ cores_per_socket }}"
+    infrastructure_vendor: "{{ infrastructure_vendor }}"
+    number_of_cpus: "{{ number_of_cpus }}"
+    number_of_sockets: "{{ number_of_sockets }}"
+    os_kernel_version: "{{ os_kernel_version }}"
+    enabled_services: "{{ enabled_services }}"
+    installed_services: "{{ installed_services }}"
+  register: filtered_systems
+
+- name: Debug
+  ansible.builtin.debug:
+    var: filtered_systems
+
+- name: Update systems to latest version using ids
+  consoledot.edgemanagement.update_systems:
+    systems: "{{ filtered_systems['matched_systems'] }}"
+  register: output

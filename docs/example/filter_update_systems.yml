@@ -1,0 +1,8 @@
+---
+- name: Filter systems
+  hosts: CRC
+  gather_facts: false
+  tasks:
+    - name: run the role
+      ansible.builtin.import_role:
+        name: consoledot.edgemanagement.filter_update_systems

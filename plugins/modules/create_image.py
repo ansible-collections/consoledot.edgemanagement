@@ -27,18 +27,21 @@ options:
     required: false
     type: list
     elements: str
+    default: []
   custom_repositories:
     description:
       - Adding a custom repository allows you to add packages from outside Red Hat to this image
     required: false
     type: list
     elements: str
+    default: []
   custom_packages:
     description:
       - List the packages you want to add from the custom repository you are adding to this image
     required: false
     type: list
     elements: str
+    default: []
   ssh_pubkey:
     description:
       - ssh public key to allow user C(ssh_user) to access to devices provisioned using this Image

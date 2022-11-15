@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 from ansible.module_utils.connection import Connection
+import ansible.module_utils.six.moves.urllib as url_lib
 
 INVENTORY_API_HOSTS = '/api/inventory/v1/hosts'
 
@@ -17,6 +18,7 @@ EDGE_API_IMAGES = '/api/edge/v1/images'
 EDGE_API_IMAGESETS = '/api/edge/v1/image-sets'
 EDGE_API_IMAGESETS_VIEW = '/api/edge/v1/image-sets/view'
 EDGE_API_THIRDPARTYREPO = '/api/edge/v1/thirdpartyrepo'
+EDGE_API_UPDATES = "/api/edge/v1/updates"
 EDGE_API_IMAGEBUILDER_PACKAGES = '/api/image-builder/v1/packages'
 
 
@@ -38,6 +40,22 @@ class ConsoleDotRequest(object):
                 self.module.fail_json(msg=f"[{method}] - {e}")
             else:
                 self.module.fail_json(msg=custom_error_msg)
+
+    def get_groups(self, name: str = ''):
+        valid_url_name = url_lib.parse.quote(name)
+        return self.get(f'{EDGE_API_GROUPS}?name={valid_url_name}')
+
+    def find_group(self, group_data, name: str = ''):
+        if group_data['data'] is None:
+            return []
+        return [
+            group for group in group_data['data'] if group['DeviceGroup']['Name'] == name
+        ]
+
+    def get_edge_system(self, system_id):
+        api_request = '%s?uuid=%s' % (EDGE_API_DEVICESVIEW, system_id)
+        response = self.get(api_request)
+        return response['data']['devices'][0]
 
     def get(self, path, **kwargs):
         return self._httpapi_error_handle("GET", path, **kwargs)
